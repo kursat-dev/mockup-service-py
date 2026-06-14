@@ -133,7 +133,14 @@
           }
         }
       ],
-      "_note": "calibrated manually"
+      "_note": "calibrated manually",
+      "feather_px": 1.5,
+      "supersample": 4,
+      "brightness_match": 0.2,
+      "saturation_match": 0.1,
+      "inner_shadow": true,
+      "overlay_opacity": 1.0,
+      "jpeg_quality": 95
     },
     "5": {
       "filename": "single-5.jpeg",
@@ -161,7 +168,14 @@
           }
         }
       ],
-      "_note": "calibrated manually"
+      "_note": "calibrated manually",
+      "feather_px": 1.5,
+      "supersample": 4,
+      "brightness_match": 0.2,
+      "saturation_match": 0.1,
+      "inner_shadow": true,
+      "overlay_opacity": 1.0,
+      "jpeg_quality": 95
     },
     "6": {
       "filename": "single-6.jpeg",
@@ -189,7 +203,14 @@
           }
         }
       ],
-      "_note": "calibrated manually"
+      "_note": "calibrated manually",
+      "feather_px": 1.5,
+      "supersample": 4,
+      "brightness_match": 0.2,
+      "saturation_match": 0.1,
+      "inner_shadow": true,
+      "overlay_opacity": 1.0,
+      "jpeg_quality": 95
     },
     "7": {
       "filename": "single-7.jpeg",
@@ -217,7 +238,14 @@
           }
         }
       ],
-      "_note": "calibrated manually"
+      "_note": "calibrated manually",
+      "feather_px": 1.5,
+      "supersample": 4,
+      "brightness_match": 0.2,
+      "saturation_match": 0.1,
+      "inner_shadow": true,
+      "overlay_opacity": 1.0,
+      "jpeg_quality": 95
     },
     "8": {
       "filename": "single-8.jpeg",
@@ -245,7 +273,14 @@
           }
         }
       ],
-      "_note": "calibrated manually"
+      "_note": "calibrated manually",
+      "feather_px": 1.5,
+      "supersample": 4,
+      "brightness_match": 0.2,
+      "saturation_match": 0.1,
+      "inner_shadow": true,
+      "overlay_opacity": 1.0,
+      "jpeg_quality": 95
     },
     "9": {
       "filename": "single-9.jpeg",
@@ -273,14 +308,21 @@
           }
         }
       ],
-      "_note": "calibrated manually"
+      "_note": "calibrated manually",
+      "feather_px": 1.5,
+      "supersample": 4,
+      "brightness_match": 0.2,
+      "saturation_match": 0.1,
+      "inner_shadow": true,
+      "overlay_opacity": 1.0,
+      "jpeg_quality": 95
     }
   },
   "kitchen": {
     "1": {
       "filename": "kitchen-1.jpeg",
       "calibrated": false,
-      "_note": "Placeholder — needs calibration tool",
+      "_note": "Placeholder \u2014 needs calibration tool",
       "frames": [
         {
           "index": 1,
@@ -364,7 +406,7 @@
     "8": {
       "filename": "kitchen-8.jpeg",
       "calibrated": false,
-      "_note": "Auto-detected — very small frame region, likely wrong",
+      "_note": "Auto-detected \u2014 very small frame region, likely wrong",
       "frames": [
         {
           "index": 1,
@@ -394,7 +436,7 @@
     "1": {
       "filename": "triple-1.jpeg",
       "calibrated": false,
-      "_note": "Auto-detected — 3 frames side by side",
+      "_note": "Auto-detected \u2014 3 frames side by side",
       "frames": [
         {
           "index": 1,
@@ -464,7 +506,7 @@
     "2": {
       "filename": "triple-2.jpeg",
       "calibrated": false,
-      "_note": "Auto-detected — non-grid layout",
+      "_note": "Auto-detected \u2014 non-grid layout",
       "frames": [
         {
           "index": 1,
@@ -534,7 +576,7 @@
     "8": {
       "filename": "triple-8.jpeg",
       "calibrated": false,
-      "_note": "Auto-detected — verify all 3 frames",
+      "_note": "Auto-detected \u2014 verify all 3 frames",
       "frames": [
         {
           "index": 1,
@@ -604,7 +646,7 @@
     "9": {
       "filename": "triple-9.jpeg",
       "calibrated": false,
-      "_note": "Auto-detected — verify all 3 frames",
+      "_note": "Auto-detected \u2014 verify all 3 frames",
       "frames": [
         {
           "index": 1,
@@ -676,7 +718,7 @@
     "1": {
       "filename": "six-1.jpeg",
       "calibrated": false,
-      "_note": "Auto-detected — 6-frame grid",
+      "_note": "Auto-detected \u2014 6-frame grid",
       "frames": [
         {
           "index": 1,

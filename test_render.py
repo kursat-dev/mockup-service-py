@@ -123,7 +123,7 @@ def generate_test_artwork(width=1500, height=2000) -> bytes:
 
 
 def run_quality_tests():
-    print("🚀 Running Quality Tests for single-1, single-2, single-3...")
+    print("🚀 Running Quality Tests for single-1 through single-9...")
     
     db = load_db()
     templates_dir = os.path.join(os.path.dirname(__file__), "templates")
@@ -131,7 +131,9 @@ def run_quality_tests():
     os.makedirs(output_dir, exist_ok=True)
     
     artwork_bytes = generate_test_artwork()
-    test_cases = ["1", "2", "3"]
+    test_cases = [str(i) for i in range(1, 10)]
+    
+    verification_results = []
     
     for idx in test_cases:
         print(f"\n--- Mockup single-{idx} ---")
@@ -165,8 +167,15 @@ def run_quality_tests():
                     corners["top_right"],
                     corners["bottom_right"],
                     corners["bottom_left"]
-                ], dtype=np.int32)
-                cv2.fillPoly(mask_img, [poly], 255)
+                ], dtype=np.float32)
+                
+                # Draw at 8x resolution for high-quality antialiasing
+                scale = 8
+                h_high, w_high = h * scale, w * scale
+                mask_high = np.zeros((h_high, w_high), dtype=np.uint8)
+                poly_high = (poly * scale).astype(np.int32)
+                cv2.fillPoly(mask_high, [poly_high], 255)
+                mask_img = cv2.resize(mask_high, (w, h), interpolation=cv2.INTER_AREA)
             cv2.imwrite(mask_path, mask_img)
             print(f"Generated mask.png: {mask_path}")
             
@@ -182,6 +191,13 @@ def run_quality_tests():
         base_loaded = os.path.exists(base_path)
         mask_loaded = os.path.exists(mask_path)
         overlay_loaded = os.path.exists(overlay_path)
+        
+        verification_results.append({
+            "idx": idx,
+            "base": "YES" if base_loaded else "NO",
+            "mask": "YES" if mask_loaded else "NO",
+            "overlay": "YES" if overlay_loaded else "NO"
+        })
         
         with open(base_path, "rb") as f:
             base_bytes = f.read()
@@ -218,7 +234,12 @@ def run_quality_tests():
         print(f"Feathering applied: YES ({settings.get('feather_px', 1.5)} px)")
         print(f"Saved to: {out_path}")
         
+    print("\n📋 Verification Table:")
+    for res in verification_results:
+        print(f"single-{res['idx']} base {res['base']} mask {res['mask']} overlay {res['overlay']}")
+        
     print("\n✅ Quality tests complete successfully!")
+
 
 
 def main():

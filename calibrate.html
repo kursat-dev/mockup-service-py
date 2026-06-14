@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mockup Frame Calibration Tool</title>
+  <title>Mockup Asset Preparation & Calibration Tool</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -32,15 +32,15 @@
     }
 
     header {
-      padding: 18px 28px;
+      padding: 14px 24px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 16px;
+      justify-content: space-between;
     }
-    header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-    header p  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    header p  { font-size: 11px; color: var(--muted); margin-top: 2px; }
     .badge {
       padding: 3px 10px;
       border-radius: 20px;
@@ -53,7 +53,7 @@
 
     .layout {
       display: grid;
-      grid-template-columns: 300px 1fr;
+      grid-template-columns: 320px 1fr;
       flex: 1;
       overflow: hidden;
     }
@@ -62,11 +62,11 @@
     .sidebar {
       background: var(--surface);
       border-right: 1px solid var(--border);
-      padding: 20px 16px;
+      padding: 16px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
 
     .section-title {
@@ -76,18 +76,20 @@
       text-transform: uppercase;
       color: var(--muted);
       margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
     }
 
-    label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
 
     input[type=text], input[type=number], select {
       width: 100%;
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 6px;
       color: var(--text);
-      padding: 8px 10px;
-      font-size: 13px;
+      padding: 6px 8px;
+      font-size: 12px;
       font-family: var(--font);
       outline: none;
       transition: border-color .2s;
@@ -98,13 +100,16 @@
 
     .btn {
       width: 100%;
-      padding: 10px;
-      border-radius: 8px;
+      padding: 8px;
+      border-radius: 6px;
       border: none;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       transition: opacity .15s, transform .1s;
+      text-align: center;
+      display: inline-block;
+      text-decoration: none;
     }
     .btn:hover { opacity: 0.88; }
     .btn:active { transform: scale(0.97); }
@@ -112,24 +117,51 @@
     .btn-success { background: var(--success); color: #0f1117; }
     .btn-danger  { background: var(--accent2); color: #fff; }
     .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--text); }
-    .btn + .btn  { margin-top: 8px; }
+    .btn + .btn  { margin-top: 6px; }
 
-    .point-list { display: flex; flex-direction: column; gap: 6px; }
+    .file-input-wrapper {
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .file-input-wrapper input[type=file] {
+      position: absolute;
+      left: 0; top: 0; opacity: 0;
+      width: 100%; height: 100%;
+      cursor: pointer;
+    }
+    .file-input-label {
+      display: block;
+      padding: 8px;
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      text-align: center;
+      font-size: 12px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .file-input-label.loaded {
+      border-color: var(--success);
+      color: var(--success);
+      background: #00e0960a;
+    }
+
+    .point-list { display: flex; flex-direction: column; gap: 4px; }
     .point-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      border-radius: 8px;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 6px;
       background: var(--bg);
       border: 1px solid var(--border);
-      font-size: 12px;
-      transition: border-color .15s;
+      font-size: 11px;
     }
     .point-item.active  { border-color: var(--accent); }
     .point-item.done    { border-color: var(--success); }
     .point-dot {
-      width: 10px; height: 10px;
+      width: 8px; height: 8px;
       border-radius: 50%;
       flex-shrink: 0;
     }
@@ -138,17 +170,17 @@
     .dot-br { background: #ff6584; }
     .dot-bl { background: #00e096; }
     .point-name { font-weight: 600; flex: 1; }
-    .point-coord { color: var(--muted); font-size: 11px; font-family: monospace; }
+    .point-coord { color: var(--muted); font-size: 10px; font-family: monospace; }
 
     .frame-nav {
       display: flex;
-      gap: 6px;
+      gap: 4px;
       flex-wrap: wrap;
     }
     .frame-chip {
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
       border: 1px solid var(--border);
@@ -160,10 +192,11 @@
     .frame-chip.complete { background: #00e09622; color: var(--success); border-color: var(--success); }
 
     .status-bar {
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      font-size: 11px;
       font-weight: 500;
+      margin-top: 6px;
     }
     .status-bar.info    { background: #6c63ff18; border: 1px solid #6c63ff44; color: var(--accent); }
     .status-bar.success { background: #00e09618; border: 1px solid #00e09644; color: var(--success); }
@@ -178,16 +211,37 @@
     }
 
     .canvas-toolbar {
-      padding: 10px 16px;
+      padding: 8px 16px;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
     }
     .canvas-toolbar span { margin-left: auto; }
+    
+    .tab-bar {
+      display: flex;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 10px 16px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: #6c63ff05;
+    }
 
     .canvas-wrap {
       flex: 1;
@@ -195,148 +249,174 @@
       display: flex;
       align-items: flex-start;
       justify-content: flex-start;
-      padding: 24px;
+      padding: 16px;
       background: #0a0b10;
-      cursor: crosshair;
     }
 
-    canvas#main {
+    canvas {
       display: block;
       border: 1px solid var(--border);
       border-radius: 4px;
-      image-rendering: pixelated;
       max-width: 100%;
+    }
+    
+    #interactiveCanvas {
+      cursor: crosshair;
     }
 
     /* ── Output panel ─────────────────────────────────────────────── */
-    .output-section {
-      margin-top: 8px;
-    }
     textarea {
       width: 100%;
-      height: 170px;
+      height: 120px;
       background: #0a0b10;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 6px;
       color: var(--success);
-      font-family: 'Courier New', monospace;
-      font-size: 11px;
-      padding: 10px;
+      font-family: monospace;
+      font-size: 10px;
+      padding: 8px;
       resize: vertical;
       outline: none;
     }
 
-    .zoom-controls { display: flex; gap: 6px; }
+    .zoom-controls { display: flex; gap: 4px; }
     .zoom-btn {
-      padding: 4px 10px;
-      border-radius: 6px;
+      padding: 3px 8px;
+      border-radius: 4px;
       border: 1px solid var(--border);
       background: var(--bg);
       color: var(--text);
-      font-size: 13px;
+      font-size: 11px;
       cursor: pointer;
-      transition: border-color .15s;
     }
-    .zoom-btn:hover { border-color: var(--accent); }
-
-    .drop-zone {
-      border: 2px dashed var(--border);
-      border-radius: 12px;
-      padding: 24px 16px;
-      text-align: center;
-      cursor: pointer;
-      transition: all .2s;
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .drop-zone:hover, .drop-zone.dragover {
-      border-color: var(--accent);
-      color: var(--text);
-      background: #6c63ff0a;
-    }
-    .drop-zone input { display: none; }
   </style>
 </head>
 <body>
 
 <header>
   <div>
-    <h1>🎯 Mockup Calibration Tool</h1>
-    <p>Click 4 corners per frame to define the artwork placement area</p>
+    <h1>🎯 Mockup Asset Preparation & Calibration Tool</h1>
+    <p>Calibrate corners, estimate overlay glare/shadows, and preview composition</p>
   </div>
-  <span class="badge">v2.0</span>
+  <span class="badge">v3.0</span>
 </header>
 
 <div class="layout">
   <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
   <aside class="sidebar">
 
-    <!-- Load image -->
+    <!-- Load images -->
     <div>
-      <div class="section-title">1. Load Template</div>
-      <div class="drop-zone" id="dropZone">
-        <input type="file" id="fileInput" accept="image/*" />
-        📂 Click or drag & drop a template image
+      <div class="section-title">1. Load Images</div>
+      <label>Original Mockup (with reflections/shadows)</label>
+      <div class="file-input-wrapper">
+        <div class="file-input-label" id="lblOriginal">📂 Select Original Mockup</div>
+        <input type="file" id="fileOriginal" accept="image/*" />
+      </div>
+      
+      <label>Clean Base (blank frame interior)</label>
+      <div class="file-input-wrapper">
+        <div class="file-input-label" id="lblBase">📂 Select Clean Base</div>
+        <input type="file" id="fileBase" accept="image/*" />
+      </div>
+
+      <label>Test Artwork (optional preview)</label>
+      <div class="file-input-wrapper">
+        <div class="file-input-label" id="lblArtwork">📂 Select Test Artwork</div>
+        <input type="file" id="fileArtwork" accept="image/*" />
       </div>
     </div>
 
-    <!-- Metadata -->
+    <!-- Metadata & Settings -->
     <div>
-      <div class="section-title">2. Metadata</div>
-      <label>Category</label>
-      <select id="catSelect">
-        <option value="single">single</option>
-        <option value="kitchen">kitchen</option>
-        <option value="triple">triple</option>
-        <option value="six">six</option>
-      </select>
-      <div style="height:10px"></div>
-      <label>Mockup Index (number only, e.g. 1)</label>
-      <input type="number" id="idxInput" value="1" min="1" max="99" />
-      <div style="height:10px"></div>
-      <label>Filename (e.g. single-1.jpeg)</label>
-      <input type="text" id="filenameInput" placeholder="single-1.jpeg" />
+      <div class="section-title">2. Configuration</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div>
+          <label>Category</label>
+          <select id="catSelect">
+            <option value="single">single</option>
+            <option value="kitchen">kitchen</option>
+            <option value="triple">triple</option>
+            <option value="six">six</option>
+          </select>
+        </div>
+        <div>
+          <label>Mockup Index</label>
+          <input type="number" id="idxInput" value="1" min="1" max="99" />
+        </div>
+      </div>
+      <div style="height:6px"></div>
+      <label>Filename (mockup background base)</label>
+      <input type="text" id="filenameInput" placeholder="base.jpg" value="base.jpg" />
+      
+      <div style="height:8px"></div>
+      <label>Pipeline Settings</label>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px">
+        <div>
+          <label>Feather (px)</label>
+          <input type="number" id="featherInput" value="1.5" step="0.5" />
+        </div>
+        <div>
+          <label>Supersample</label>
+          <input type="number" id="superInput" value="4" min="1" max="8" />
+        </div>
+        <div>
+          <label>Bright Match</label>
+          <input type="number" id="brightInput" value="0.2" step="0.05" />
+        </div>
+        <div>
+          <label>Satur Match</label>
+          <input type="number" id="saturInput" value="0.1" step="0.05" />
+        </div>
+        <div>
+          <label>Overlay Opacity</label>
+          <input type="number" id="opacityInput" value="1.0" step="0.1" />
+        </div>
+        <div>
+          <label>JPEG Quality</label>
+          <input type="number" id="qualityInput" value="95" min="1" max="100" />
+        </div>
+      </div>
     </div>
 
     <!-- Frame nav -->
-    <div id="frameNavSection" style="display:none">
+    <div id="frameNavSection">
       <div class="section-title">3. Frame Selection</div>
       <div class="frame-nav" id="frameNav"></div>
-      <div style="height:8px"></div>
+      <div style="height:6px"></div>
       <button class="btn btn-ghost" id="addFrameBtn">＋ Add Frame</button>
     </div>
 
     <!-- Click order instructions -->
-    <div id="clickInstructions" style="display:none">
+    <div id="clickInstructions">
       <div class="section-title">4. Click Corners</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6">
-        Click <strong>exactly 4 corners</strong> in this order:
-      </div>
       <div class="point-list" id="pointList">
         <div class="point-item active" data-pt="0"><span class="point-dot dot-tl"></span><span class="point-name">Top Left</span><span class="point-coord" id="coord0">—</span></div>
         <div class="point-item"        data-pt="1"><span class="point-dot dot-tr"></span><span class="point-name">Top Right</span><span class="point-coord" id="coord1">—</span></div>
         <div class="point-item"        data-pt="2"><span class="point-dot dot-br"></span><span class="point-name">Bottom Right</span><span class="point-coord" id="coord2">—</span></div>
         <div class="point-item"        data-pt="3"><span class="point-dot dot-bl"></span><span class="point-name">Bottom Left</span><span class="point-coord" id="coord3">—</span></div>
       </div>
-      <div style="height:8px"></div>
-      <button class="btn btn-danger" id="clearFrameBtn">↩ Clear This Frame</button>
+      <div style="height:6px"></div>
+      <button class="btn btn-danger" id="clearFrameBtn">↩ Clear Frame</button>
+    </div>
+
+    <!-- Export & Downloads -->
+    <div>
+      <div class="section-title">5. Export Assets</div>
+      <button class="btn btn-primary" id="btnProcess">⚙️ Generate Mask & Overlay</button>
+      <div style="height:6px"></div>
+      <a class="btn btn-success" id="dlMask" style="display:none">💾 Download mask.png</a>
+      <a class="btn btn-success" id="dlOverlay" style="display:none">💾 Download overlay.png</a>
+      <button class="btn btn-ghost" id="btnCopyJson">📋 Copy Coordinates JSON</button>
+      <div style="height:6px"></div>
+      <textarea id="outputJson" readonly placeholder="JSON will appear here…"></textarea>
     </div>
 
     <div id="statusBox" class="status-bar info" style="display:none"></div>
 
-    <!-- Output -->
-    <div class="output-section">
-      <div class="section-title">5. Export</div>
-      <button class="btn btn-success" id="exportBtn">⬇ Export coordinates.json</button>
-      <div style="height:8px"></div>
-      <button class="btn btn-ghost" id="copyBtn">📋 Copy JSON to Clipboard</button>
-      <div style="height:10px"></div>
-      <textarea id="outputJson" readonly placeholder="JSON output will appear here…"></textarea>
-    </div>
-
   </aside>
 
-  <!-- ── CANVAS ──────────────────────────────────────────────── -->
+  <!-- ── CANVAS AREA ────────────────────────────────────────── -->
   <div class="canvas-area">
     <div class="canvas-toolbar">
       <span>🔍 Zoom:</span>
@@ -348,8 +428,22 @@
       </div>
       <span id="cursorPos">x: — y: —</span>
     </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="calibrate">🎯 Corner Calibration</button>
+      <button class="tab-btn" data-tab="mask">⚫ Mask Preview</button>
+      <button class="tab-btn" data-tab="overlay">⚪ Overlay Preview</button>
+      <button class="tab-btn" data-tab="composite">🖼️ Composite Preview</button>
+    </div>
+
     <div class="canvas-wrap" id="canvasWrap">
-      <canvas id="main"></canvas>
+      <!-- Calibration Canvas (interactive) -->
+      <canvas id="interactiveCanvas"></canvas>
+      
+      <!-- Preview Canvases (read-only, shown when respective tabs active) -->
+      <canvas id="maskCanvas" style="display:none"></canvas>
+      <canvas id="overlayCanvas" style="display:none"></canvas>
+      <canvas id="compositeCanvas" style="display:none"></canvas>
     </div>
   </div>
 </div>
@@ -357,107 +451,208 @@
 <script>
 /* ──────────────────────────────────────────────────────────────────────────
    State
-──────────────────────────────────────────────────────────────────────────── */
+   ────────────────────────────────────────────────────────────────────────── */
 const POINT_NAMES  = ['top_left', 'top_right', 'bottom_right', 'bottom_left'];
 const POINT_COLORS = ['#6c63ff',  '#ffc65a',    '#ff6584',       '#00e096'];
 
-let img        = null;      // HTMLImageElement
-let zoom       = 1.0;
-let currentFrame = 0;       // which frame slot we're editing
-let frames     = [[]];      // frames[frameIdx] = array of {x,y} (0-4 points)
+let imgOriginal = null;
+let imgBase     = null;
+let imgArtwork  = null;
 
-// Saved entries for all calibrated mockups: { category: { idx: { filename, frames, calibrated } } }
-let savedDB = {};
-
-/* ──────────────────────────────────────────────────────────────────────────
-   DOM refs
-──────────────────────────────────────────────────────────────────────────── */
-const canvas     = document.getElementById('main');
-const ctx        = canvas.getContext('2d');
-const fileInput  = document.getElementById('fileInput');
-const dropZone   = document.getElementById('dropZone');
-const catSelect  = document.getElementById('catSelect');
-const idxInput   = document.getElementById('idxInput');
-const fnInput    = document.getElementById('filenameInput');
-const frameNav   = document.getElementById('frameNav');
-const frameNavSec= document.getElementById('frameNavSection');
-const clickInst  = document.getElementById('clickInstructions');
-const addFrameBtn= document.getElementById('addFrameBtn');
-const clearBtn   = document.getElementById('clearFrameBtn');
-const exportBtn  = document.getElementById('exportBtn');
-const copyBtn    = document.getElementById('copyBtn');
-const outputJson = document.getElementById('outputJson');
-const statusBox  = document.getElementById('statusBox');
-const cursorPos  = document.getElementById('cursorPos');
-const zoomLabel  = document.getElementById('zoomLabel');
-const canvasWrap = document.getElementById('canvasWrap');
+let zoom = 1.0;
+let currentFrame = 0;
+let frames = [[]]; // Array of arrays of {x, y}
+let activeTab = "calibrate";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Load image
-──────────────────────────────────────────────────────────────────────────── */
-function loadFile(file) {
-  if (!file || !file.type.startsWith('image/')) return;
-  fnInput.value = file.name;
-  const reader = new FileReader();
-  reader.onload = e => {
-    img = new Image();
-    img.onload = () => {
-      // Reset state for new image
-      frames = [[]];
-      currentFrame = 0;
-      renderFrameNav();
-      frameNavSec.style.display = 'block';
-      clickInst.style.display = 'block';
-      fitCanvas();
-      drawAll();
-      setStatus('Image loaded. Click the 4 corners of Frame 1.', 'info');
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
+   DOM elements
+   ────────────────────────────────────────────────────────────────────────── */
+const fileOriginal = document.getElementById('fileOriginal');
+const fileBase     = document.getElementById('fileBase');
+const fileArtwork  = document.getElementById('fileArtwork');
 
-dropZone.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', e => loadFile(e.target.files[0]));
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('dragover');
-  loadFile(e.dataTransfer.files[0]);
+const lblOriginal  = document.getElementById('lblOriginal');
+const lblBase      = document.getElementById('lblBase');
+const lblArtwork   = document.getElementById('lblArtwork');
+
+const catSelect    = document.getElementById('catSelect');
+const idxInput     = document.getElementById('idxInput');
+const fnInput      = document.getElementById('filenameInput');
+
+const featherInput  = document.getElementById('featherInput');
+const superInput    = document.getElementById('superInput');
+const brightInput   = document.getElementById('brightInput');
+const saturInput    = document.getElementById('saturInput');
+const opacityInput  = document.getElementById('opacityInput');
+const qualityInput  = document.getElementById('qualityInput');
+
+const frameNav     = document.getElementById('frameNav');
+const addFrameBtn  = document.getElementById('addFrameBtn');
+const clearFrameBtn = document.getElementById('clearFrameBtn');
+const btnProcess   = document.getElementById('btnProcess');
+const dlMask       = document.getElementById('dlMask');
+const dlOverlay    = document.getElementById('dlOverlay');
+const btnCopyJson  = document.getElementById('btnCopyJson');
+const outputJson   = document.getElementById('outputJson');
+const statusBox    = document.getElementById('statusBox');
+const cursorPos    = document.getElementById('cursorPos');
+const zoomLabel    = document.getElementById('zoomLabel');
+const canvasWrap   = document.getElementById('canvasWrap');
+
+const canvasCalibrate = document.getElementById('interactiveCanvas');
+const canvasMask      = document.getElementById('maskCanvas');
+const canvasOverlay   = document.getElementById('overlayCanvas');
+const canvasComposite = document.getElementById('compositeCanvas');
+
+const ctxCalibrate = canvasCalibrate.getContext('2d');
+const ctxMask      = canvasMask.getContext('2d');
+const ctxOverlay   = canvasOverlay.getContext('2d');
+const ctxComposite = canvasComposite.getContext('2d');
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Tab Selection
+   ────────────────────────────────────────────────────────────────────────── */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTab = btn.getAttribute('data-tab');
+    
+    // Toggle canvases
+    canvasCalibrate.style.display = activeTab === 'calibrate' ? 'block' : 'none';
+    canvasMask.style.display      = activeTab === 'mask' ? 'block' : 'none';
+    canvasOverlay.style.display   = activeTab === 'overlay' ? 'block' : 'none';
+    canvasComposite.style.display = activeTab === 'composite' ? 'block' : 'none';
+    
+    applyZoom();
+  });
 });
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Zoom
-──────────────────────────────────────────────────────────────────────────── */
+   Load file handlers
+   ────────────────────────────────────────────────────────────────────────── */
+fileOriginal.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    imgOriginal = new Image();
+    imgOriginal.onload = () => {
+      lblOriginal.textContent = "✅ " + file.name.slice(0, 16);
+      lblOriginal.classList.add('loaded');
+      if (!imgBase) {
+        // Automatically load Clean Base as the same image initially to make it easy
+        imgBase = imgOriginal;
+        lblBase.textContent = "✅ (Original fallback)";
+        lblBase.classList.add('loaded');
+      }
+      initCalibration();
+    };
+    imgOriginal.src = ev.target.result;
+  };
+  r.readAsDataURL(file);
+});
+
+fileBase.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    imgBase = new Image();
+    imgBase.onload = () => {
+      lblBase.textContent = "✅ " + file.name.slice(0, 16);
+      lblBase.classList.add('loaded');
+      initCalibration();
+    };
+    imgBase.src = ev.target.result;
+  };
+  r.readAsDataURL(file);
+});
+
+fileArtwork.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    imgArtwork = new Image();
+    imgArtwork.onload = () => {
+      lblArtwork.textContent = "✅ " + file.name.slice(0, 16);
+      lblArtwork.classList.add('loaded');
+      if (frames[0].length === 4) generateAssets();
+    };
+    imgArtwork.src = ev.target.result;
+  };
+  r.readAsDataURL(file);
+});
+
+function initCalibration() {
+  if (!imgOriginal) return;
+  frames = [[]];
+  currentFrame = 0;
+  renderFrameNav();
+  fitCanvas();
+  drawCalibrate();
+  setStatus('Original Mockup loaded. Click 4 corners for Frame 1.', 'info');
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Zoom & Resize
+   ────────────────────────────────────────────────────────────────────────── */
 function fitCanvas() {
-  if (!img) return;
-  const wrapW = canvasWrap.clientWidth  - 48;
-  const wrapH = canvasWrap.clientHeight - 48;
-  zoom = Math.min(wrapW / img.naturalWidth, wrapH / img.naturalHeight, 1.5);
+  const activeCanvas = getActiveCanvas();
+  const activeImg = imgOriginal || imgBase;
+  if (!activeCanvas || !activeImg) return;
+  const wrapW = canvasWrap.clientWidth - 32;
+  const wrapH = canvasWrap.clientHeight - 32;
+  zoom = Math.min(wrapW / activeImg.naturalWidth, wrapH / activeImg.naturalHeight, 1.5);
   applyZoom();
 }
+
+function getActiveCanvas() {
+  if (activeTab === 'calibrate') return canvasCalibrate;
+  if (activeTab === 'mask') return canvasMask;
+  if (activeTab === 'overlay') return canvasOverlay;
+  if (activeTab === 'composite') return canvasComposite;
+  return null;
+}
+
 function applyZoom() {
-  if (!img) return;
-  canvas.width  = Math.round(img.naturalWidth  * zoom);
-  canvas.height = Math.round(img.naturalHeight * zoom);
+  const activeImg = imgOriginal || imgBase;
+  if (!activeImg) return;
+  const w = Math.round(activeImg.naturalWidth * zoom);
+  const h = Math.round(activeImg.naturalHeight * zoom);
+  
   zoomLabel.textContent = Math.round(zoom * 100) + '%';
+  
+  canvasCalibrate.width = w; canvasCalibrate.height = h;
+  canvasMask.width = w; canvasMask.height = h;
+  canvasOverlay.width = w; canvasOverlay.height = h;
+  canvasComposite.width = w; canvasComposite.height = h;
+  
   drawAll();
 }
-document.getElementById('zoomIn' ).addEventListener('click', () => { zoom = Math.min(zoom + 0.15, 4); applyZoom(); });
-document.getElementById('zoomOut').addEventListener('click', () => { zoom = Math.max(zoom - 0.15, 0.1); applyZoom(); });
+
+function drawAll() {
+  if (activeTab === 'calibrate') drawCalibrate();
+  else if (activeTab === 'mask') drawMaskPreview();
+  else if (activeTab === 'overlay') drawOverlayPreview();
+  else if (activeTab === 'composite') drawCompositePreview();
+}
+
+document.getElementById('zoomIn').addEventListener('click', () => { zoom = Math.min(zoom + 0.1, 4.0); applyZoom(); });
+document.getElementById('zoomOut').addEventListener('click', () => { zoom = Math.max(zoom - 0.1, 0.1); applyZoom(); });
 document.getElementById('zoomFit').addEventListener('click', fitCanvas);
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Frame management
-──────────────────────────────────────────────────────────────────────────── */
+   Frame navigation
+   ────────────────────────────────────────────────────────────────────────── */
 function renderFrameNav() {
   frameNav.innerHTML = '';
   frames.forEach((pts, i) => {
     const chip = document.createElement('div');
     chip.className = 'frame-chip' + (i === currentFrame ? ' active' : '') + (pts.length === 4 ? ' complete' : '');
     chip.textContent = `Frame ${i + 1}`;
-    chip.addEventListener('click', () => { currentFrame = i; renderFrameNav(); updatePointList(); drawAll(); });
+    chip.addEventListener('click', () => { currentFrame = i; renderFrameNav(); updatePointList(); drawCalibrate(); });
     frameNav.appendChild(chip);
   });
 }
@@ -467,130 +662,112 @@ addFrameBtn.addEventListener('click', () => {
   currentFrame = frames.length - 1;
   renderFrameNav();
   updatePointList();
-  drawAll();
+  drawCalibrate();
   setStatus(`Frame ${currentFrame + 1} added. Click its 4 corners.`, 'info');
 });
 
-clearBtn.addEventListener('click', () => {
+clearFrameBtn.addEventListener('click', () => {
   frames[currentFrame] = [];
   renderFrameNav();
   updatePointList();
-  drawAll();
-  setStatus('Frame cleared. Click 4 corners again.', 'warn');
+  drawCalibrate();
+  setStatus('Frame corners cleared.', 'warn');
 });
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Canvas click → collect points
-──────────────────────────────────────────────────────────────────────────── */
-canvas.addEventListener('mousemove', e => {
-  const r = canvas.getBoundingClientRect();
+   Interactive Calibration Canvas clicks
+   ────────────────────────────────────────────────────────────────────────── */
+canvasCalibrate.addEventListener('mousemove', e => {
+  const r = canvasCalibrate.getBoundingClientRect();
   const x = Math.round((e.clientX - r.left) / zoom);
   const y = Math.round((e.clientY - r.top)  / zoom);
   cursorPos.textContent = `x: ${x}  y: ${y}`;
 });
 
-canvas.addEventListener('click', e => {
-  if (!img) return;
+canvasCalibrate.addEventListener('click', e => {
+  const activeImg = imgOriginal || imgBase;
+  if (!activeImg) return;
   const pts = frames[currentFrame];
   if (pts.length >= 4) {
-    setStatus('Frame complete. Select next frame or add a new one.', 'success');
+    setStatus('Current frame is complete. Click Add Frame or select another.', 'success');
     return;
   }
-  const r = canvas.getBoundingClientRect();
+  const r = canvasCalibrate.getBoundingClientRect();
   const x = Math.round((e.clientX - r.left) / zoom);
   const y = Math.round((e.clientY - r.top)  / zoom);
+  
   pts.push({ x, y });
   updatePointList();
-  drawAll();
+  drawCalibrate();
+  
   if (pts.length === 4) {
     renderFrameNav();
-    setStatus(`Frame ${currentFrame + 1} ✅ complete!`, 'success');
+    setStatus(`Frame ${currentFrame + 1} corners selected!`, 'success');
     generateJSON();
   }
 });
 
-/* ──────────────────────────────────────────────────────────────────────────
-   Point list UI
-──────────────────────────────────────────────────────────────────────────── */
 function updatePointList() {
   const pts = frames[currentFrame];
   for (let i = 0; i < 4; i++) {
-    const item  = document.querySelector(`.point-item[data-pt="${i}"]`);
+    const item = document.querySelector(`.point-item[data-pt="${i}"]`);
     const coord = document.getElementById(`coord${i}`);
     item.classList.toggle('active', i === pts.length);
-    item.classList.toggle('done',   i < pts.length);
+    item.classList.toggle('done', i < pts.length);
     coord.textContent = pts[i] ? `${pts[i].x}, ${pts[i].y}` : '—';
   }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Draw
-──────────────────────────────────────────────────────────────────────────── */
-function drawAll() {
-  if (!img) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
+   Draw Calibration
+   ────────────────────────────────────────────────────────────────────────── */
+function drawCalibrate() {
+  const activeImg = imgOriginal || imgBase;
+  if (!activeImg) return;
+  ctxCalibrate.clearRect(0, 0, canvasCalibrate.width, canvasCalibrate.height);
+  ctxCalibrate.drawImage(activeImg, 0, 0, canvasCalibrate.width, canvasCalibrate.height);
+  
   frames.forEach((pts, fi) => {
     const isActive = fi === currentFrame;
-    const alpha = isActive ? 1.0 : 0.45;
-
-    // Draw polygon if we have 2+ points
+    const alpha = isActive ? 1.0 : 0.5;
+    
     if (pts.length >= 2) {
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x * zoom, pts[0].y * zoom);
-      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x * zoom, pts[i].y * zoom);
-      if (pts.length === 4) ctx.closePath();
-      ctx.strokeStyle = isActive ? '#6c63ff' : '#00e096';
-      ctx.lineWidth = 2 / zoom * zoom;
-      ctx.globalAlpha = alpha;
-      ctx.stroke();
+      ctxCalibrate.beginPath();
+      ctxCalibrate.moveTo(pts[0].x * zoom, pts[0].y * zoom);
+      for (let i = 1; i < pts.length; i++) ctxCalibrate.lineTo(pts[i].x * zoom, pts[i].y * zoom);
+      if (pts.length === 4) ctxCalibrate.closePath();
+      ctxCalibrate.strokeStyle = isActive ? '#6c63ff' : '#00e096';
+      ctxCalibrate.lineWidth = 2;
+      ctxCalibrate.globalAlpha = alpha;
+      ctxCalibrate.stroke();
       if (pts.length === 4) {
-        ctx.fillStyle = isActive ? '#6c63ff18' : '#00e09612';
-        ctx.fill();
+        ctxCalibrate.fillStyle = isActive ? '#6c63ff18' : '#00e09612';
+        ctxCalibrate.fill();
       }
-      ctx.globalAlpha = 1;
+      ctxCalibrate.globalAlpha = 1.0;
     }
-
-    // Draw corner dots
+    
     pts.forEach((p, pi) => {
-      ctx.beginPath();
-      ctx.arc(p.x * zoom, p.y * zoom, 6, 0, Math.PI * 2);
-      ctx.fillStyle = POINT_COLORS[pi];
-      ctx.globalAlpha = alpha;
-      ctx.fill();
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-
-      // Label
-      if (isActive) {
-        ctx.fillStyle = '#fff';
-        ctx.font = `bold ${Math.round(11 * Math.min(zoom, 1.5))}px Inter, sans-serif`;
-        ctx.fillText(POINT_NAMES[pi].replace('_', '\n'), p.x * zoom + 8, p.y * zoom - 6);
-      }
+      ctxCalibrate.beginPath();
+      ctxCalibrate.arc(p.x * zoom, p.y * zoom, 5, 0, Math.PI * 2);
+      ctxCalibrate.fillStyle = POINT_COLORS[pi];
+      ctxCalibrate.globalAlpha = alpha;
+      ctxCalibrate.fill();
+      ctxCalibrate.strokeStyle = '#fff';
+      ctxCalibrate.lineWidth = 1;
+      ctxCalibrate.stroke();
+      ctxCalibrate.globalAlpha = 1.0;
     });
-
-    // Frame label
-    const labelPt = pts[0];
-    if (labelPt) {
-      ctx.fillStyle = isActive ? '#6c63ff' : '#00e096';
-      ctx.font = `bold ${Math.round(13 * Math.min(zoom, 1.5))}px Inter, sans-serif`;
-      ctx.fillText(`F${fi + 1}`, labelPt.x * zoom - 18, labelPt.y * zoom - 10);
-    }
   });
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Generate JSON output
-──────────────────────────────────────────────────────────────────────────── */
+   JSON Generation
+   ────────────────────────────────────────────────────────────────────────── */
 function generateJSON() {
   const cat = catSelect.value;
-  const idx = idxInput.value.toString();
-  const fn  = fnInput.value || `${cat}-${idx}.jpeg`;
-
-  // Build frames array from calibrated clicks
+  const idx = idxInput.value;
+  
   const calibratedFrames = frames
     .filter(pts => pts.length === 4)
     .map((pts, i) => ({
@@ -602,71 +779,294 @@ function generateJSON() {
         bottom_left:  [pts[3].x, pts[3].y]
       }
     }));
-
+    
   if (calibratedFrames.length === 0) return;
-
-  // Merge into savedDB
-  if (!savedDB[cat]) savedDB[cat] = {};
-  savedDB[cat][idx] = {
-    filename: fn,
-    calibrated: true,
-    frames: calibratedFrames
+  
+  const patch = {
+    [cat]: {
+      [idx]: {
+        filename: fnInput.value || `${cat}-${idx}.jpeg`,
+        calibrated: true,
+        feather_px: parseFloat(featherInput.value),
+        supersample: parseInt(superInput.value),
+        brightness_match: parseFloat(brightInput.value),
+        saturation_match: parseFloat(saturInput.value),
+        inner_shadow: true,
+        overlay_opacity: parseFloat(opacityInput.value),
+        jpeg_quality: parseInt(qualityInput.value),
+        frames: calibratedFrames
+      }
+    }
   };
-
-  // Pretty-print
-  outputJson.value = JSON.stringify(savedDB, null, 2);
-  setStatus(`✅ ${cat}/${idx} saved (${calibratedFrames.length} frame${calibratedFrames.length>1?'s':''}).`, 'success');
+  
+  outputJson.value = JSON.stringify(patch, null, 2);
 }
 
-catSelect.addEventListener('change', generateJSON);
-idxInput.addEventListener('input', generateJSON);
-fnInput.addEventListener('input', generateJSON);
+// Bind live changes to coordinates output
+[catSelect, idxInput, fnInput, featherInput, superInput, brightInput, saturInput, opacityInput, qualityInput]
+  .forEach(el => el.addEventListener('input', generateJSON));
 
-/* ──────────────────────────────────────────────────────────────────────────
-   Export / Copy
-──────────────────────────────────────────────────────────────────────────── */
-exportBtn.addEventListener('click', () => {
-  if (!outputJson.value) { setStatus('Nothing to export yet.', 'warn'); return; }
-  const blob = new Blob([outputJson.value], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'coordinates_patch.json';
-  a.click();
-});
-
-copyBtn.addEventListener('click', () => {
-  if (!outputJson.value) { setStatus('Nothing to copy yet.', 'warn'); return; }
-  navigator.clipboard.writeText(outputJson.value).then(() => setStatus('Copied to clipboard!', 'success'));
+btnCopyJson.addEventListener('click', () => {
+  if (!outputJson.value) return;
+  navigator.clipboard.writeText(outputJson.value).then(() => setStatus('JSON copied to clipboard!', 'success'));
 });
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Status helper
-──────────────────────────────────────────────────────────────────────────── */
+   Asset Processing (Mask & Overlay generation)
+   ────────────────────────────────────────────────────────────────────────── */
+let generatedMaskUrl = null;
+let generatedOverlayUrl = null;
+
+// Offscreen high-res canvases for calculation
+const offscreenMask = document.createElement('canvas');
+const offscreenOverlay = document.createElement('canvas');
+
+btnProcess.addEventListener('click', () => {
+  if (!imgOriginal || !imgBase) {
+    setStatus('Please load both Original Mockup and Clean Base first.', 'warn');
+    return;
+  }
+  const completeFrames = frames.filter(pts => pts.length === 4);
+  if (completeFrames.length === 0) {
+    setStatus('Please select all 4 corners for at least one frame.', 'warn');
+    return;
+  }
+  
+  generateAssets();
+});
+
+function generateAssets() {
+  const w = imgOriginal.naturalWidth;
+  const h = imgOriginal.naturalHeight;
+  
+  offscreenMask.width = w; offscreenMask.height = h;
+  offscreenOverlay.width = w; offscreenOverlay.height = h;
+  
+  const ctxM = offscreenMask.getContext('2d');
+  const ctxO = offscreenOverlay.getContext('2d');
+  
+  // ── 1. Create mask.png (white inside quads, black outside) ──
+  ctxM.fillStyle = '#000000';
+  ctxM.fillRect(0, 0, w, h);
+  ctxM.fillStyle = '#ffffff';
+  
+  frames.forEach(pts => {
+    if (pts.length === 4) {
+      ctxM.beginPath();
+      ctxM.moveTo(pts[0].x, pts[0].y);
+      ctxM.lineTo(pts[1].x, pts[1].y);
+      ctxM.lineTo(pts[2].x, pts[2].y);
+      ctxM.lineTo(pts[3].x, pts[3].y);
+      ctxM.closePath();
+      ctxM.fill();
+    }
+  });
+  
+  // ── 2. Create overlay.png (Extract shadows and highlights) ──
+  // Temp canvases to read original & base pixels
+  const cOrig = document.createElement('canvas'); cOrig.width = w; cOrig.height = h;
+  const cBase = document.createElement('canvas'); cBase.width = w; cBase.height = h;
+  
+  const ctxOrig = cOrig.getContext('2d'); ctxOrig.drawImage(imgOriginal, 0, 0);
+  const ctxBase = cBase.getContext('2d'); ctxBase.drawImage(imgBase, 0, 0);
+  
+  const origData = ctxOrig.getImageData(0, 0, w, h);
+  const baseData = ctxBase.getImageData(0, 0, w, h);
+  const maskData = ctxM.getImageData(0, 0, w, h);
+  
+  const overlayData = ctxO.createImageData(w, h);
+  
+  for (let i = 0; i < origData.data.length; i += 4) {
+    const isMask = maskData.data[i] > 127; // check if mask is white
+    
+    if (isMask) {
+      // Read colors
+      const Or = origData.data[i];
+      const Og = origData.data[i+1];
+      const Ob = origData.data[i+2];
+      
+      const Cr = baseData.data[i];
+      const Cg = baseData.data[i+1];
+      const Cb = baseData.data[i+2];
+      
+      // Compute luminance
+      const Lo = 0.299 * Or + 0.587 * Og + 0.114 * Ob;
+      const Lc = 0.299 * Cr + 0.587 * Cg + 0.114 * Cb;
+      
+      if (Lo < Lc && Lc > 0) {
+        // Shadow: darken towards black
+        const alpha = 1.0 - (Lo / Lc);
+        overlayData.data[i]   = 0;
+        overlayData.data[i+1] = 0;
+        overlayData.data[i+2] = 0;
+        overlayData.data[i+3] = Math.round(alpha * 255 * 0.9); // max opacity factor 0.9 to avoid complete pitch black
+      } else if (Lo > Lc && Lc < 255) {
+        // Highlight/Reflection: brighten towards white
+        const alpha = (Lo - Lc) / (255 - Lc);
+        overlayData.data[i]   = 255;
+        overlayData.data[i+1] = 255;
+        overlayData.data[i+2] = 255;
+        overlayData.data[i+3] = Math.round(alpha * 255);
+      } else {
+        overlayData.data[i+3] = 0;
+      }
+    } else {
+      // Outside mask, keep fully transparent
+      overlayData.data[i+3] = 0;
+    }
+  }
+  
+  ctxO.putImageData(overlayData, 0, 0);
+  
+  // Set up downloads
+  dlMask.href = offscreenMask.toDataURL("image/png");
+  dlMask.download = "mask.png";
+  dlMask.style.display = "block";
+  
+  dlOverlay.href = offscreenOverlay.toDataURL("image/png");
+  dlOverlay.download = "overlay.png";
+  dlOverlay.style.display = "block";
+  
+  setStatus('Assets generated successfully. Select tabs to preview.', 'success');
+  
+  // Update previews
+  drawMaskPreview();
+  drawOverlayPreview();
+  drawCompositePreview();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Draw Preview Canvases
+   ────────────────────────────────────────────────────────────────────────── */
+function drawMaskPreview() {
+  ctxMask.clearRect(0, 0, canvasMask.width, canvasMask.height);
+  ctxMask.drawImage(offscreenMask, 0, 0, canvasMask.width, canvasMask.height);
+}
+
+function drawOverlayPreview() {
+  ctxOverlay.clearRect(0, 0, canvasOverlay.width, canvasOverlay.height);
+  // Fill background with checkerboard to see transparency
+  drawCheckerboard(ctxOverlay, canvasOverlay.width, canvasOverlay.height);
+  ctxOverlay.drawImage(offscreenOverlay, 0, 0, canvasOverlay.width, canvasOverlay.height);
+}
+
+function drawCheckerboard(ctx, w, h) {
+  const size = 10;
+  for (let y = 0; y < h; y += size) {
+    for (let x = 0; x < w; x += size) {
+      ctx.fillStyle = ((x / size + y / size) % 2 === 0) ? '#222' : '#333';
+      ctx.fillRect(x, y, size, size);
+    }
+  }
+}
+
+function drawCompositePreview() {
+  ctxComposite.clearRect(0, 0, canvasComposite.width, canvasComposite.height);
+  
+  // 1. Draw base image
+  ctxComposite.drawImage(imgBase, 0, 0, canvasComposite.width, canvasComposite.height);
+  
+  // 2. Warp test artwork into each frame
+  frames.forEach(pts => {
+    if (pts.length === 4) {
+      if (imgArtwork) {
+        // Draw real artwork
+        const aw = imgArtwork.naturalWidth;
+        const ah = imgArtwork.naturalHeight;
+        
+        // Scale corners to canvas size
+        const p0x = pts[0].x * zoom, p0y = pts[0].y * zoom;
+        const p1x = pts[1].x * zoom, p1y = pts[1].y * zoom;
+        const p2x = pts[2].x * zoom, p2y = pts[2].y * zoom;
+        const p3x = pts[3].x * zoom, p3y = pts[3].y * zoom;
+        
+        // Triangle 1: TL, TR, BL
+        drawTriangleWarp(ctxComposite, imgArtwork,
+          p0x, p0y, p1x, p1y, p3x, p3y,
+          0, 0, aw, 0, 0, ah
+        );
+        // Triangle 2: TR, BR, BL
+        drawTriangleWarp(ctxComposite, imgArtwork,
+          p1x, p1y, p2x, p2y, p3x, p3y,
+          aw, 0, aw, ah, 0, ah
+        );
+      } else {
+        // Draw fallback colored gradient to see where artwork goes
+        ctxComposite.beginPath();
+        ctxComposite.moveTo(pts[0].x * zoom, pts[0].y * zoom);
+        ctxComposite.lineTo(pts[1].x * zoom, pts[1].y * zoom);
+        ctxComposite.lineTo(pts[2].x * zoom, pts[2].y * zoom);
+        ctxComposite.lineTo(pts[3].x * zoom, pts[3].y * zoom);
+        ctxComposite.closePath();
+        ctxComposite.fillStyle = '#6c63ff66';
+        ctxComposite.fill();
+        ctxComposite.strokeStyle = '#6c63ff';
+        ctxComposite.lineWidth = 2;
+        ctxComposite.stroke();
+      }
+    }
+  });
+  
+  // 3. Composite overlay.png on top
+  const opacity = parseFloat(opacityInput.value);
+  ctxComposite.save();
+  ctxComposite.globalAlpha = opacity;
+  ctxComposite.drawImage(offscreenOverlay, 0, 0, canvasComposite.width, canvasComposite.height);
+  ctxComposite.restore();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Triangle Warping Affine Helper (2D Perspective Emulation)
+   ────────────────────────────────────────────────────────────────────────── */
+function drawTriangleWarp(ctx, img, x0, y0, x1, y1, x2, y2, sx0, sy0, sx1, sy1, sx2, sy2) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x0, y0);
+  ctx.lineTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.closePath();
+  ctx.clip();
+  
+  const denom = sx0 * (sy2 - sy1) - sx1 * sy2 + sx2 * sy1 + (sx1 - sx2) * sy0;
+  if (Math.abs(denom) < 1e-5) {
+    ctx.restore();
+    return;
+  }
+  
+  const m11 = -(sy0 * (x2 - x1) - sy1 * x2 + sy2 * x1 + (sy1 - sy2) * x0) / denom;
+  const m12 = (sy0 * (y2 - y1) - sy1 * y2 + sy2 * y1 + (sy1 - sy2) * y0) / denom;
+  const m21 = (sx0 * (x2 - x1) - sx1 * x2 + sx2 * x1 + (sx1 - sx2) * x0) / denom;
+  const m22 = -(sx0 * (y2 - y1) - sx1 * y2 + sx2 * y1 + (sx1 - sx2) * y0) / denom;
+  const dx  = (sx0 * (sy2 * x1 - sy1 * x2) + sy0 * (sx1 * x2 - sx2 * x1) + (sx2 * sy1 - sx1 * sy2) * x0) / denom;
+  const dy  = (sx0 * (sy2 * y1 - sy1 * y2) + sy0 * (sx1 * y2 - sx2 * y1) + (sx2 * sy1 - sx1 * sy2) * y0) / denom;
+  
+  ctx.transform(m11, m12, m21, m22, dx, dy);
+  ctx.drawImage(img, 0, 0);
+  ctx.restore();
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   General Utilities
+   ────────────────────────────────────────────────────────────────────────── */
 function setStatus(msg, type = 'info') {
   statusBox.style.display = 'block';
   statusBox.className = `status-bar ${type}`;
   statusBox.textContent = msg;
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
-   Keyboard shortcuts
-──────────────────────────────────────────────────────────────────────────── */
 document.addEventListener('keydown', e => {
   if (e.key === 'z' && (e.metaKey || e.ctrlKey)) {
-    // Undo last click
     const pts = frames[currentFrame];
     if (pts.length > 0) {
       pts.pop();
       updatePointList();
-      drawAll();
-      setStatus('Last point undone (Ctrl+Z)', 'warn');
+      drawCalibrate();
+      setStatus('Last point undone.', 'warn');
     }
   }
-  if (e.key === '+' || e.key === '=') { zoom = Math.min(zoom + 0.15, 4); applyZoom(); }
-  if (e.key === '-')                  { zoom = Math.max(zoom - 0.15, 0.1); applyZoom(); }
 });
 
-window.addEventListener('resize', () => { if (img) fitCanvas(); });
+window.addEventListener('resize', () => { fitCanvas(); });
 </script>
 </body>
 </html>

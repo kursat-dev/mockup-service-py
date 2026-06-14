@@ -33,31 +33,41 @@ else:
     print(f"[Startup WARNING] Coordinate DB not found at {DB_PATH}. Only fallback defaults will be used.")
 
 # ── Validate internal templates at startup ───────────────────────────────────
-internal_templates: dict = {}  # { "single": { "1": "/abs/path/to/single-1.jpeg", ... } }
+internal_templates: dict = {}  # { "single": { "1": { "type": "directory", "path": "..." } } }
 
-TEMPLATE_CATEGORIES = {
-    "single": 9,
-}
+if os.path.exists(TEMPLATES_DIR):
+    categories = ["single", "kitchen", "triple", "six"]
+    for cat in categories:
+        internal_templates[cat] = {}
+        cat_dir = os.path.join(TEMPLATES_DIR, cat)
+        if not os.path.exists(cat_dir):
+            continue
+        for item in os.listdir(cat_dir):
+            item_path = os.path.join(cat_dir, item)
+            if os.path.isdir(item_path):
+                if item.startswith(f"{cat}-"):
+                    index_str = item.split("-")[-1]
+                    if (os.path.exists(os.path.join(item_path, "base.jpg")) and
+                        os.path.exists(os.path.join(item_path, "mask.png")) and
+                        os.path.exists(os.path.join(item_path, "overlay.png"))):
+                        internal_templates[cat][index_str] = {
+                            "type": "directory",
+                            "path": item_path
+                        }
+                        print(f"[Startup] ✅ Directory Template found: {cat}/{item}")
+            elif os.path.isfile(item_path):
+                if item.startswith(f"{cat}-") and (item.endswith(".jpeg") or item.endswith(".jpg")):
+                    name_without_ext = os.path.splitext(item)[0]
+                    index_str = name_without_ext.split("-")[-1]
+                    internal_templates[cat][index_str] = {
+                        "type": "file",
+                        "path": item_path
+                    }
+                    print(f"[Startup] ✅ File Template found: {cat}/{item}")
 
-for category, expected_count in TEMPLATE_CATEGORIES.items():
-    category_dir = os.path.join(TEMPLATES_DIR, category)
-    internal_templates[category] = {}
-    for i in range(1, expected_count + 1):
-        filename = f"{category}-{i}.jpeg"
-        filepath = os.path.join(category_dir, filename)
-        if os.path.exists(filepath):
-            internal_templates[category][str(i)] = filepath
-            print(f"[Startup] ✅ Template found: {category}/{filename}")
-        else:
-            print(f"[Startup] ⚠️  Template MISSING: {category}/{filename} (expected at {filepath})")
-
-for category, templates in internal_templates.items():
-    expected = TEMPLATE_CATEGORIES.get(category, 0)
+for cat, templates in internal_templates.items():
     found = len(templates)
-    if found == expected:
-        print(f"[Startup] Template category '{category}': {found}/{expected} — all present")
-    else:
-        print(f"[Startup] Template category '{category}': {found}/{expected} — {expected - found} missing")
+    print(f"[Startup] Template category '{cat}': {found} templates found on disk")
 
 
 # ── Default frame regions (fallback when no calibrated entry exists) ─────────
@@ -86,31 +96,69 @@ def get_default_regions(category: str) -> list:
     return []
 
 
-def lookup_frames(category: str, mockup_index: str) -> tuple[list, bool]:
+def lookup_frames(category: str, mockup_index: str) -> tuple[list, bool, dict]:
     """
-    Returns (frames, is_calibrated).
+    Returns (frames, is_calibrated, settings).
     Lookup order:
       1. coordinates_db[category][mockup_index]   ← canonical key
       2. coordinates_db[category][str(int(mockup_index))] ← int normalise
       3. Default ratio-based fallback
     """
     cat_db = coordinates_db.get(category, {})
+    key = str(mockup_index)
+    normalized_key = str(int(mockup_index)) if mockup_index.isdigit() else key
 
-    entry = cat_db.get(mockup_index) or cat_db.get(str(int(mockup_index))) if mockup_index else None
+    entry = cat_db.get(key) or cat_db.get(normalized_key)
+
+    DEFAULT_SETTINGS = {
+        "feather_px": 1.5,
+        "supersample": 4,
+        "brightness_match": 0.2,
+        "saturation_match": 0.1,
+        "inner_shadow": True,
+        "overlay_opacity": 1.0,
+        "jpeg_quality": 95
+    }
 
     if entry:
         frames = entry.get("frames", [])
         calibrated = entry.get("calibrated", False)
-        return frames, calibrated
+        # Load settings
+        settings = {**DEFAULT_SETTINGS}
+        for k in DEFAULT_SETTINGS:
+            if k in entry:
+                settings[k] = entry[k]
+        return frames, calibrated, settings
 
     # Fallback
-    return get_default_regions(category), False
+    return get_default_regions(category), False, DEFAULT_SETTINGS
 
 
-def get_internal_template(category: str, mockup_index: str) -> Optional[str]:
-    """Returns the absolute path to an internal template, or None if not available."""
+def get_template_assets(category: str, mockup_index: str) -> Optional[dict]:
+    """
+    Returns a dict containing file paths for 'base', 'mask', and 'overlay'
+    if three-asset template directory is found, or 'file' if legacy file is found.
+    """
     cat_templates = internal_templates.get(category, {})
-    return cat_templates.get(mockup_index) or cat_templates.get(str(int(mockup_index))) if mockup_index else None
+    key = str(mockup_index)
+    normalized_key = str(int(mockup_index)) if mockup_index.isdigit() else key
+    
+    tpl = cat_templates.get(key) or cat_templates.get(normalized_key)
+    if not tpl:
+        return None
+        
+    if tpl["type"] == "directory":
+        return {
+            "type": "directory",
+            "base": os.path.join(tpl["path"], "base.jpg"),
+            "mask": os.path.join(tpl["path"], "mask.png"),
+            "overlay": os.path.join(tpl["path"], "overlay.png")
+        }
+    else:
+        return {
+            "type": "file",
+            "file": tpl["path"]
+        }
 
 
 # ── API Key middleware ────────────────────────────────────────────────────────
@@ -212,27 +260,38 @@ async def render(
 
     try:
         # ── Resolve template: internal first, uploaded fallback ──────────────
-        template_bytes = None
+        base_bytes = None
+        mask_bytes = None
+        overlay_bytes = None
         template_source = "unknown"
 
-        internal_path = get_internal_template(category, mockup_index)
-        if internal_path:
-            with open(internal_path, "rb") as f:
-                template_bytes = f.read()
-            template_source = internal_path
-            print(f"[Render] template={os.path.relpath(internal_path, os.path.dirname(TEMPLATES_DIR))}")
+        assets = get_template_assets(category, mockup_index)
+        if assets:
+            if assets["type"] == "directory":
+                with open(assets["base"], "rb") as f:
+                    base_bytes = f.read()
+                with open(assets["mask"], "rb") as f:
+                    mask_bytes = f.read()
+                with open(assets["overlay"], "rb") as f:
+                    overlay_bytes = f.read()
+                template_source = os.path.dirname(assets["base"])
+                print(f"[Render] Using three-asset template from {category}/{category}-{mockup_index}")
+            else:
+                with open(assets["file"], "rb") as f:
+                    base_bytes = f.read()
+                template_source = assets["file"]
+                print(f"[Render] Using fallback single-file template {category}/{os.path.basename(assets['file'])}")
         elif mockup_template is not None:
-            template_bytes = await mockup_template.read()
+            base_bytes = await mockup_template.read()
             template_source = f"uploaded:{mockup_template.filename}"
-            print(f"[Render] template=uploaded ({mockup_template.filename})")
+            print(f"[Render] Using uploaded template {mockup_template.filename}")
         else:
-            # No internal template and no uploaded template
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={
                     "success": False,
                     "errorType": "RENDER_ERROR",
-                    "message": f"No internal template found for category='{category}' mockup_index='{mockup_index}' and no mockup_template was uploaded."
+                    "message": f"No template found for category='{category}' mockup_index='{mockup_index}' and no mockup_template was uploaded."
                 }
             )
 
@@ -253,19 +312,18 @@ async def render(
             )
 
         # ── Coordinate lookup ────────────────────────────────────────────────
-        frames, calibrated = lookup_frames(category, mockup_index)
+        frames, calibrated, settings = lookup_frames(category, mockup_index)
         print(f"[Render] coordinates={category}/{mockup_index} calibrated={str(calibrated).lower()}")
 
         # ── Render ───────────────────────────────────────────────────────────
         print(f"[Render] method=opencv-local")
         rendered_bytes = warp_perspective_cv(
-            template_bytes=template_bytes,
+            template_bytes=base_bytes,
             product_bytes_list=product_bytes_list,
             frames=frames,
-            inner_shadow=True,
-            glass_glare=False,
-            paper_texture=False,
-            lighting_multiply=True
+            settings=settings,
+            mask_bytes=mask_bytes,
+            overlay_bytes=overlay_bytes
         )
 
         duration_ms = int((time.time() - start_time) * 1000)

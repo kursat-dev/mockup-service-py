@@ -5,6 +5,13 @@
     "1": {
       "filename": "single-1.jpeg",
       "calibrated": true,
+      "feather_px": 1.5,
+      "supersample": 4,
+      "brightness_match": 0.2,
+      "saturation_match": 0.1,
+      "inner_shadow": true,
+      "overlay_opacity": 1.0,
+      "jpeg_quality": 95,
       "frames": [
         {
           "index": 1,
@@ -33,6 +40,13 @@
     "2": {
       "filename": "single-2.jpeg",
       "calibrated": true,
+      "feather_px": 1.5,
+      "supersample": 4,
+      "brightness_match": 0.2,
+      "saturation_match": 0.1,
+      "inner_shadow": true,
+      "overlay_opacity": 1.0,
+      "jpeg_quality": 95,
       "frames": [
         {
           "index": 1,
@@ -61,6 +75,13 @@
     "3": {
       "filename": "single-3.jpeg",
       "calibrated": true,
+      "feather_px": 1.5,
+      "supersample": 4,
+      "brightness_match": 0.2,
+      "saturation_match": 0.1,
+      "inner_shadow": true,
+      "overlay_opacity": 1.0,
+      "jpeg_quality": 95,
       "frames": [
         {
           "index": 1,

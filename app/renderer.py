@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
-from PIL import Image, ImageChops
+from PIL import Image
 import io
-
+from typing import Optional
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -28,36 +28,16 @@ def _build_inner_shadow(pw: int, ph: int, depth_ratio: float = 0.035, max_opacit
     return Image.fromarray(shadow_np, "RGBA")
 
 
-def _extract_luminance_map(
-    img_temp_bgr: np.ndarray,
-    h_matrix_inv: np.ndarray,
-    pw: int,
-    ph: int,
-    baseline: float = 230.0
-) -> np.ndarray:
-    """
-    Back-warps the template patch into artwork space, extracts a smooth
-    luminance map, and returns it normalised around a mid-tone baseline.
-    Values <1.0 darken the artwork; values >1.0 brighten it.
-    """
-    patch = cv2.warpPerspective(img_temp_bgr, h_matrix_inv, (pw, ph), flags=cv2.INTER_LINEAR)
-    gray  = cv2.cvtColor(patch, cv2.COLOR_BGR2GRAY).astype(float)
-
-    # Keep only low-frequency (large-scale) lighting gradients
-    ksize = max(5, int(min(pw, ph) * 0.12) | 1)
-    blurred = cv2.GaussianBlur(gray, (ksize, ksize), 0)
-
-    # Clamp range so highlights don't wash out and shadows don't go black
-    lum = np.clip(blurred / baseline, 0.10, 1.15)
-    return lum
-
-
 # ── Main renderer ─────────────────────────────────────────────────────────────
 
 def warp_perspective_cv(
     template_bytes: bytes,
     product_bytes_list: list,
     frames: list,
+    settings: Optional[dict] = None,
+    mask_bytes: Optional[bytes] = None,
+    overlay_bytes: Optional[bytes] = None,
+    # Old params kept for backward compatibility:
     inner_shadow: bool = True,
     glass_glare: bool = False,
     paper_texture: bool = False,
@@ -65,39 +45,51 @@ def warp_perspective_cv(
 ) -> bytes:
     """
     Deterministic Computer-Vision Rendering Pipeline
-    
-    Parameters
-    ----------
-    template_bytes      : raw bytes of the JPEG mockup background
-    product_bytes_list  : list of raw bytes, one per artwork (matching frame order)
-    frames              : list of frame dicts with {'index', 'corners': {top_left, …}}
-                          Corners are PIXEL coordinates in the template image space.
-    inner_shadow        : soft bezel shadow at artwork edges (default True)
-    glass_glare         : diagonal specular highlight (default False — too artificial)
-    paper_texture       : random grain overlay (default False — tends to smudge)
-    lighting_multiply   : multiply artwork by local template luminance (default True)
-    
-    Returns
-    -------
-    bytes : JPEG-encoded composite image
+    Supports supersampling, Lanczos downsampling, feathered mask,
+    color/luminance matching, and base/mask/overlay template composition.
     """
-    # ── 1. Load template ─────────────────────────────────────────────────────
-    arr_temp = np.frombuffer(template_bytes, np.uint8)
-    img_temp = cv2.imdecode(arr_temp, cv2.IMREAD_COLOR)   # BGR
-    if img_temp is None:
-        raise ValueError("Failed to decode mockup template image.")
-    th, tw = img_temp.shape[:2]
+    # ── 1. Initialize settings ──
+    if settings is None:
+        settings = {}
+    
+    # Safe defaults
+    feather_px = settings.get("feather_px", 1.5)
+    supersample = int(settings.get("supersample", 4))
+    brightness_match = settings.get("brightness_match", 0.2)
+    saturation_match = settings.get("saturation_match", 0.1)
+    use_inner_shadow = settings.get("inner_shadow", inner_shadow)
+    overlay_opacity = settings.get("overlay_opacity", 1.0)
+    jpeg_quality = int(settings.get("jpeg_quality", 95))
 
-    pil_template = Image.fromarray(cv2.cvtColor(img_temp, cv2.COLOR_BGR2RGB)).convert("RGBA")
+    # ── 2. Load base image ──
+    arr_base = np.frombuffer(template_bytes, np.uint8)
+    img_base = cv2.imdecode(arr_base, cv2.IMREAD_COLOR)   # BGR
+    if img_base is None:
+        raise ValueError("Failed to decode mockup template/base image.")
+    th, tw = img_base.shape[:2]
 
-    # ── 2. Render each frame ─────────────────────────────────────────────────
+    # ── 3. Load global mask ──
+    img_mask = None
+    if mask_bytes is not None:
+        arr_mask = np.frombuffer(mask_bytes, np.uint8)
+        img_mask = cv2.imdecode(arr_mask, cv2.IMREAD_GRAYSCALE)
+
+    # ── 4. Load overlay ──
+    img_overlay = None
+    if overlay_bytes is not None:
+        arr_overlay = np.frombuffer(overlay_bytes, np.uint8)
+        img_overlay = cv2.imdecode(arr_overlay, cv2.IMREAD_UNCHANGED)  # Load BGRA
+
+    # ── 5. Render each frame ──
+    img_composite = img_base.copy()
+
     for i, frame in enumerate(frames):
         if i >= len(product_bytes_list):
             print(f"[Renderer] Frame {i+1} skipped — no matching product image supplied.")
             break
 
         arr_prod = np.frombuffer(product_bytes_list[i], np.uint8)
-        img_prod = cv2.imdecode(arr_prod, cv2.IMREAD_COLOR)
+        img_prod = cv2.imdecode(arr_prod, cv2.IMREAD_COLOR)  # BGR
         if img_prod is None:
             print(f"[Renderer] Frame {i+1} skipped — could not decode product image.")
             continue
@@ -105,7 +97,7 @@ def warp_perspective_cv(
 
         corners = frame["corners"]
 
-        # Destination points — already in PIXEL space of the template
+        # Destination points in template space
         pts_dst = np.array([
             corners["top_left"],
             corners["top_right"],
@@ -113,63 +105,109 @@ def warp_perspective_cv(
             corners["bottom_left"]
         ], dtype=np.float32)
 
-        # Source = full product image corners
-        pts_src = np.array([
-            [0,      0],
-            [pw - 1, 0],
-            [pw - 1, ph - 1],
-            [0,      ph - 1]
-        ], dtype=np.float32)
+        # ── Color/Luminance Matching ──
+        # Estimate from target frame area on base image
+        frame_poly = pts_dst.astype(np.int32)
+        temp_mask = np.zeros((th, tw), dtype=np.uint8)
+        cv2.fillPoly(temp_mask, [frame_poly], 255)
+        
+        mean_color = cv2.mean(img_base, mask=temp_mask)[:3]  # BGR
+        b_base, g_base, r_base = mean_color
+        
+        # Calculate luminance (standard coefficients)
+        L_base = 0.299 * r_base + 0.587 * g_base + 0.114 * b_base
+        
+        if L_base > 0:
+            t_r = r_base / L_base
+            t_g = g_base / L_base
+            t_b = b_base / L_base
+        else:
+            t_r, t_g, t_b = 1.0, 1.0, 1.0
 
-        h_matrix     = cv2.getPerspectiveTransform(pts_src, pts_dst)
-        h_matrix_inv = cv2.getPerspectiveTransform(pts_dst, pts_src)
+        # Adjust brightness gently
+        m_bright = L_base / 255.0
+        m_bright_adj = 1.0 + (m_bright - 1.0) * brightness_match
+        
+        # Adjust saturation/temperature gently
+        t_r_adj = 1.0 + (t_r - 1.0) * saturation_match
+        t_g_adj = 1.0 + (t_g - 1.0) * saturation_match
+        t_b_adj = 1.0 + (t_b - 1.0) * saturation_match
+        
+        factor_r = t_r_adj * m_bright_adj
+        factor_g = t_g_adj * m_bright_adj
+        factor_b = t_b_adj * m_bright_adj
+        
+        # Apply BGR adjustments to artwork
+        img_matched = img_prod.astype(float)
+        img_matched[:, :, 0] = np.clip(img_matched[:, :, 0] * factor_b, 0.0, 255.0)
+        img_matched[:, :, 1] = np.clip(img_matched[:, :, 1] * factor_g, 0.0, 255.0)
+        img_matched[:, :, 2] = np.clip(img_matched[:, :, 2] * factor_r, 0.0, 255.0)
+        img_matched = img_matched.astype(np.uint8)
 
-        # Convert product to Pillow RGBA for effect compositing
-        prod_pil = Image.fromarray(cv2.cvtColor(img_prod, cv2.COLOR_BGR2RGB)).convert("RGBA")
-
-        # ── Effect A: Local Lighting Multiply ────────────────────────────────
-        if lighting_multiply:
-            lum = _extract_luminance_map(img_temp, h_matrix_inv, pw, ph)
-            prod_np = np.array(prod_pil.convert("RGB")).astype(float)
-            for ch in range(3):
-                prod_np[:, :, ch] = np.clip(prod_np[:, :, ch] * lum, 0.0, 255.0)
-            prod_pil = Image.fromarray(prod_np.astype(np.uint8)).convert("RGBA")
-
-        # ── Effect B: Inner Bezel Shadow ─────────────────────────────────────
-        if inner_shadow:
+        # ── Inner Contact Shadow ──
+        if use_inner_shadow:
+            prod_pil = Image.fromarray(cv2.cvtColor(img_matched, cv2.COLOR_BGR2RGB)).convert("RGBA")
             shadow = _build_inner_shadow(pw, ph)
             prod_pil = Image.alpha_composite(prod_pil, shadow)
+            img_matched = cv2.cvtColor(np.array(prod_pil.convert("RGB")), cv2.COLOR_RGB2BGR)
 
-        # ── Effect C: Glass Glare (disabled by default) ──────────────────────
-        if glass_glare:
-            glare_np = np.zeros((ph, pw, 4), dtype=np.uint8)
-            y_idx, x_idx = np.indices((ph, pw))
-            u = x_idx / max(1.0, float(pw - 1))
-            v = y_idx / max(1.0, float(ph - 1))
-            diag = u + v
-            glare = np.zeros_like(diag)
-            m1 = (diag >= 0.70) & (diag <= 1.25)
-            glare[m1] = np.power(1.0 - np.abs(diag[m1] - 0.95) / 0.28, 3.5) * 22
-            m2 = (diag >= 0.18) & (diag <= 0.38)
-            glare[m2] = np.power(1.0 - np.abs(diag[m2] - 0.28) / 0.10, 2) * 5
-            glare_np[:, :, :3] = 255
-            glare_np[:, :,  3] = glare.astype(np.uint8)
-            prod_pil = Image.alpha_composite(prod_pil, Image.fromarray(glare_np, "RGBA"))
+        # ── Supersampled Warp ──
+        sw, sh = tw * supersample, th * supersample
+        pts_dst_scaled = pts_dst * supersample
+        
+        pts_src = np.array([
+            [0, 0],
+            [pw - 1, 0],
+            [pw - 1, ph - 1],
+            [0, ph - 1]
+        ], dtype=np.float32)
 
-        # ── Warp into template space ─────────────────────────────────────────
-        final_bgr = cv2.cvtColor(np.array(prod_pil.convert("RGB")), cv2.COLOR_RGB2BGR)
+        h_matrix_scaled = cv2.getPerspectiveTransform(pts_src, pts_dst_scaled)
+        
+        # Warp artwork at Nx resolution
+        warped_art_scaled = cv2.warpPerspective(img_matched, h_matrix_scaled, (sw, sh), flags=cv2.INTER_LANCZOS4)
+        
+        # Warp mask at Nx resolution
+        mask_src = np.ones((ph, pw), dtype=np.uint8) * 255
+        warped_mask_scaled = cv2.warpPerspective(mask_src, h_matrix_scaled, (sw, sh), flags=cv2.INTER_NEAREST)
 
-        warped_art  = cv2.warpPerspective(final_bgr, h_matrix, (tw, th), flags=cv2.INTER_LANCZOS4)
-        mask_src    = np.ones((ph, pw), dtype=np.uint8) * 255
-        warped_mask = cv2.warpPerspective(mask_src, h_matrix, (tw, th), flags=cv2.INTER_NEAREST)
+        # ── Downsampling ──
+        warped_art = cv2.resize(warped_art_scaled, (tw, th), interpolation=cv2.INTER_LANCZOS4)
+        warped_mask = cv2.resize(warped_mask_scaled, (tw, th), interpolation=cv2.INTER_LANCZOS4)
 
-        # Composite onto master template
-        art_rgb = cv2.cvtColor(warped_art, cv2.COLOR_BGR2RGB)
-        pil_art = Image.fromarray(art_rgb).convert("RGBA")
-        pil_art.putalpha(Image.fromarray(warped_mask).convert("L"))
-        pil_template.alpha_composite(pil_art)
+        # ── Feathering the Mask ──
+        if feather_px > 0:
+            ksize = int(2 * round(3 * feather_px) + 1)
+            ksize = max(3, ksize | 1)
+            warped_mask_feathered = cv2.GaussianBlur(warped_mask, (ksize, ksize), feather_px)
+        else:
+            warped_mask_feathered = warped_mask.copy()
 
-    # ── 3. Encode as JPEG ────────────────────────────────────────────────────
-    buf = io.BytesIO()
-    pil_template.convert("RGB").save(buf, format="JPEG", quality=93, optimize=True)
-    return buf.getvalue()
+        # Combine with global mask if available
+        if img_mask is not None:
+            m_feathered = warped_mask_feathered.astype(float) / 255.0
+            m_global = img_mask.astype(float) / 255.0
+            final_mask = (m_feathered * m_global * 255.0).astype(np.uint8)
+        else:
+            final_mask = warped_mask_feathered
+
+        # ── Blend warped artwork onto base ──
+        mask_normalized = final_mask.astype(float) / 255.0
+        mask_3d = np.expand_dims(mask_normalized, axis=2)
+        
+        img_composite = (warped_art.astype(float) * mask_3d + img_composite.astype(float) * (1.0 - mask_3d)).astype(np.uint8)
+
+    # ── 6. Composite overlay.png ──
+    if img_overlay is not None:
+        overlay_bgr = img_overlay[:, :, :3]
+        overlay_alpha = (img_overlay[:, :, 3].astype(float) / 255.0) * overlay_opacity
+        overlay_alpha_3d = np.expand_dims(overlay_alpha, axis=2)
+        
+        img_composite = (overlay_bgr.astype(float) * overlay_alpha_3d + img_composite.astype(float) * (1.0 - overlay_alpha_3d)).astype(np.uint8)
+
+    # ── 7. Encode as JPEG ──
+    success, encoded = cv2.imencode(".jpg", img_composite, [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality])
+    if not success:
+        raise ValueError("Failed to encode composite image as JPEG.")
+    return encoded.tobytes()
+

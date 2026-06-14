@@ -1,0 +1,10 @@
+venv/
+.git/
+.gitignore
+scratch/
+test_output.jpg
+test_render.py
+calibrate.html
+__pycache__/
+*.pyc
+.DS_Store

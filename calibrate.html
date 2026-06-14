@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup Frame Calibration Tool</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1d27;
+      --border:   #2e3148;
+      --accent:   #6c63ff;
+      --accent2:  #ff6584;
+      --success:  #00e096;
+      --warn:     #ffc65a;
+      --text:     #e8eaf6;
+      --muted:    #7c80a0;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 18px 28px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    header p  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #6c63ff22;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────────── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 20px 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 4px; }
+
+    input[type=text], input[type=number], select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: var(--font);
+      outline: none;
+      transition: border-color .2s;
+    }
+    input[type=text]:focus, input[type=number]:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:hover { opacity: 0.88; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-success { background: var(--success); color: #0f1117; }
+    .btn-danger  { background: var(--accent2); color: #fff; }
+    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn + .btn  { margin-top: 8px; }
+
+    .point-list { display: flex; flex-direction: column; gap: 6px; }
+    .point-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      transition: border-color .15s;
+    }
+    .point-item.active  { border-color: var(--accent); }
+    .point-item.done    { border-color: var(--success); }
+    .point-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-tl { background: #6c63ff; }
+    .dot-tr { background: #ffc65a; }
+    .dot-br { background: #ff6584; }
+    .dot-bl { background: #00e096; }
+    .point-name { font-weight: 600; flex: 1; }
+    .point-coord { color: var(--muted); font-size: 11px; font-family: monospace; }
+
+    .frame-nav {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .frame-chip {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      transition: all .15s;
+    }
+    .frame-chip:hover    { border-color: var(--accent); color: var(--text); }
+    .frame-chip.active   { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .frame-chip.complete { background: #00e09622; color: var(--success); border-color: var(--success); }
+
+    .status-bar {
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-bar.info    { background: #6c63ff18; border: 1px solid #6c63ff44; color: var(--accent); }
+    .status-bar.success { background: #00e09618; border: 1px solid #00e09644; color: var(--success); }
+    .status-bar.warn    { background: #ffc65a18; border: 1px solid #ffc65a44; color: var(--warn); }
+
+    /* ── Canvas area ──────────────────────────────────────────────── */
+    .canvas-area {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .canvas-toolbar {
+      padding: 10px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .canvas-toolbar span { margin-left: auto; }
+
+    .canvas-wrap {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 24px;
+      background: #0a0b10;
+      cursor: crosshair;
+    }
+
+    canvas#main {
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      image-rendering: pixelated;
+      max-width: 100%;
+    }
+
+    /* ── Output panel ─────────────────────────────────────────────── */
+    .output-section {
+      margin-top: 8px;
+    }
+    textarea {
+      width: 100%;
+      height: 170px;
+      background: #0a0b10;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--success);
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      padding: 10px;
+      resize: vertical;
+      outline: none;
+    }
+
+    .zoom-controls { display: flex; gap: 6px; }
+    .zoom-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .zoom-btn:hover { border-color: var(--accent); }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent);
+      color: var(--text);
+      background: #6c63ff0a;
+    }
+    .drop-zone input { display: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🎯 Mockup Calibration Tool</h1>
+    <p>Click 4 corners per frame to define the artwork placement area</p>
+  </div>
+  <span class="badge">v2.0</span>
+</header>
+
+<div class="layout">
+  <!-- ── SIDEBAR ─────────────────────────────────────────────── -->
+  <aside class="sidebar">
+
+    <!-- Load image -->
+    <div>
+      <div class="section-title">1. Load Template</div>
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept="image/*" />
+        📂 Click or drag & drop a template image
+      </div>
+    </div>
+
+    <!-- Metadata -->
+    <div>
+      <div class="section-title">2. Metadata</div>
+      <label>Category</label>
+      <select id="catSelect">
+        <option value="single">single</option>
+        <option value="kitchen">kitchen</option>
+        <option value="triple">triple</option>
+        <option value="six">six</option>
+      </select>
+      <div style="height:10px"></div>
+      <label>Mockup Index (number only, e.g. 1)</label>
+      <input type="number" id="idxInput" value="1" min="1" max="99" />
+      <div style="height:10px"></div>
+      <label>Filename (e.g. single-1.jpeg)</label>
+      <input type="text" id="filenameInput" placeholder="single-1.jpeg" />
+    </div>
+
+    <!-- Frame nav -->
+    <div id="frameNavSection" style="display:none">
+      <div class="section-title">3. Frame Selection</div>
+      <div class="frame-nav" id="frameNav"></div>
+      <div style="height:8px"></div>
+      <button class="btn btn-ghost" id="addFrameBtn">＋ Add Frame</button>
+    </div>
+
+    <!-- Click order instructions -->
+    <div id="clickInstructions" style="display:none">
+      <div class="section-title">4. Click Corners</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6">
+        Click <strong>exactly 4 corners</strong> in this order:
+      </div>
+      <div class="point-list" id="pointList">
+        <div class="point-item active" data-pt="0"><span class="point-dot dot-tl"></span><span class="point-name">Top Left</span><span class="point-coord" id="coord0">—</span></div>
+        <div class="point-item"        data-pt="1"><span class="point-dot dot-tr"></span><span class="point-name">Top Right</span><span class="point-coord" id="coord1">—</span></div>
+        <div class="point-item"        data-pt="2"><span class="point-dot dot-br"></span><span class="point-name">Bottom Right</span><span class="point-coord" id="coord2">—</span></div>
+        <div class="point-item"        data-pt="3"><span class="point-dot dot-bl"></span><span class="point-name">Bottom Left</span><span class="point-coord" id="coord3">—</span></div>
+      </div>
+      <div style="height:8px"></div>
+      <button class="btn btn-danger" id="clearFrameBtn">↩ Clear This Frame</button>
+    </div>
+
+    <div id="statusBox" class="status-bar info" style="display:none"></div>
+
+    <!-- Output -->
+    <div class="output-section">
+      <div class="section-title">5. Export</div>
+      <button class="btn btn-success" id="exportBtn">⬇ Export coordinates.json</button>
+      <div style="height:8px"></div>
+      <button class="btn btn-ghost" id="copyBtn">📋 Copy JSON to Clipboard</button>
+      <div style="height:10px"></div>
+      <textarea id="outputJson" readonly placeholder="JSON output will appear here…"></textarea>
+    </div>
+
+  </aside>
+
+  <!-- ── CANVAS ──────────────────────────────────────────────── -->
+  <div class="canvas-area">
+    <div class="canvas-toolbar">
+      <span>🔍 Zoom:</span>
+      <div class="zoom-controls">
+        <button class="zoom-btn" id="zoomOut">－</button>
+        <span id="zoomLabel">100%</span>
+        <button class="zoom-btn" id="zoomIn">＋</button>
+        <button class="zoom-btn" id="zoomFit">Fit</button>
+      </div>
+      <span id="cursorPos">x: — y: —</span>
+    </div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="main"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ──────────────────────────────────────────────────────────────────────────
+   State
+──────────────────────────────────────────────────────────────────────────── */
+const POINT_NAMES  = ['top_left', 'top_right', 'bottom_right', 'bottom_left'];
+const POINT_COLORS = ['#6c63ff',  '#ffc65a',    '#ff6584',       '#00e096'];
+
+let img        = null;      // HTMLImageElement
+let zoom       = 1.0;
+let currentFrame = 0;       // which frame slot we're editing
+let frames     = [[]];      // frames[frameIdx] = array of {x,y} (0-4 points)
+
+// Saved entries for all calibrated mockups: { category: { idx: { filename, frames, calibrated } } }
+let savedDB = {};
+
+/* ──────────────────────────────────────────────────────────────────────────
+   DOM refs
+──────────────────────────────────────────────────────────────────────────── */
+const canvas     = document.getElementById('main');
+const ctx        = canvas.getContext('2d');
+const fileInput  = document.getElementById('fileInput');
+const dropZone   = document.getElementById('dropZone');
+const catSelect  = document.getElementById('catSelect');
+const idxInput   = document.getElementById('idxInput');
+const fnInput    = document.getElementById('filenameInput');
+const frameNav   = document.getElementById('frameNav');
+const frameNavSec= document.getElementById('frameNavSection');
+const clickInst  = document.getElementById('clickInstructions');
+const addFrameBtn= document.getElementById('addFrameBtn');
+const clearBtn   = document.getElementById('clearFrameBtn');
+const exportBtn  = document.getElementById('exportBtn');
+const copyBtn    = document.getElementById('copyBtn');
+const outputJson = document.getElementById('outputJson');
+const statusBox  = document.getElementById('statusBox');
+const cursorPos  = document.getElementById('cursorPos');
+const zoomLabel  = document.getElementById('zoomLabel');
+const canvasWrap = document.getElementById('canvasWrap');
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Load image
+──────────────────────────────────────────────────────────────────────────── */
+function loadFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  fnInput.value = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    img = new Image();
+    img.onload = () => {
+      // Reset state for new image
+      frames = [[]];
+      currentFrame = 0;
+      renderFrameNav();
+      frameNavSec.style.display = 'block';
+      clickInst.style.display = 'block';
+      fitCanvas();
+      drawAll();
+      setStatus('Image loaded. Click the 4 corners of Frame 1.', 'info');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => loadFile(e.target.files[0]));
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  loadFile(e.dataTransfer.files[0]);
+});
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Zoom
+──────────────────────────────────────────────────────────────────────────── */
+function fitCanvas() {
+  if (!img) return;
+  const wrapW = canvasWrap.clientWidth  - 48;
+  const wrapH = canvasWrap.clientHeight - 48;
+  zoom = Math.min(wrapW / img.naturalWidth, wrapH / img.naturalHeight, 1.5);
+  applyZoom();
+}
+function applyZoom() {
+  if (!img) return;
+  canvas.width  = Math.round(img.naturalWidth  * zoom);
+  canvas.height = Math.round(img.naturalHeight * zoom);
+  zoomLabel.textContent = Math.round(zoom * 100) + '%';
+  drawAll();
+}
+document.getElementById('zoomIn' ).addEventListener('click', () => { zoom = Math.min(zoom + 0.15, 4); applyZoom(); });
+document.getElementById('zoomOut').addEventListener('click', () => { zoom = Math.max(zoom - 0.15, 0.1); applyZoom(); });
+document.getElementById('zoomFit').addEventListener('click', fitCanvas);
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Frame management
+──────────────────────────────────────────────────────────────────────────── */
+function renderFrameNav() {
+  frameNav.innerHTML = '';
+  frames.forEach((pts, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'frame-chip' + (i === currentFrame ? ' active' : '') + (pts.length === 4 ? ' complete' : '');
+    chip.textContent = `Frame ${i + 1}`;
+    chip.addEventListener('click', () => { currentFrame = i; renderFrameNav(); updatePointList(); drawAll(); });
+    frameNav.appendChild(chip);
+  });
+}
+
+addFrameBtn.addEventListener('click', () => {
+  frames.push([]);
+  currentFrame = frames.length - 1;
+  renderFrameNav();
+  updatePointList();
+  drawAll();
+  setStatus(`Frame ${currentFrame + 1} added. Click its 4 corners.`, 'info');
+});
+
+clearBtn.addEventListener('click', () => {
+  frames[currentFrame] = [];
+  renderFrameNav();
+  updatePointList();
+  drawAll();
+  setStatus('Frame cleared. Click 4 corners again.', 'warn');
+});
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Canvas click → collect points
+──────────────────────────────────────────────────────────────────────────── */
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect();
+  const x = Math.round((e.clientX - r.left) / zoom);
+  const y = Math.round((e.clientY - r.top)  / zoom);
+  cursorPos.textContent = `x: ${x}  y: ${y}`;
+});
+
+canvas.addEventListener('click', e => {
+  if (!img) return;
+  const pts = frames[currentFrame];
+  if (pts.length >= 4) {
+    setStatus('Frame complete. Select next frame or add a new one.', 'success');
+    return;
+  }
+  const r = canvas.getBoundingClientRect();
+  const x = Math.round((e.clientX - r.left) / zoom);
+  const y = Math.round((e.clientY - r.top)  / zoom);
+  pts.push({ x, y });
+  updatePointList();
+  drawAll();
+  if (pts.length === 4) {
+    renderFrameNav();
+    setStatus(`Frame ${currentFrame + 1} ✅ complete!`, 'success');
+    generateJSON();
+  }
+});
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Point list UI
+──────────────────────────────────────────────────────────────────────────── */
+function updatePointList() {
+  const pts = frames[currentFrame];
+  for (let i = 0; i < 4; i++) {
+    const item  = document.querySelector(`.point-item[data-pt="${i}"]`);
+    const coord = document.getElementById(`coord${i}`);
+    item.classList.toggle('active', i === pts.length);
+    item.classList.toggle('done',   i < pts.length);
+    coord.textContent = pts[i] ? `${pts[i].x}, ${pts[i].y}` : '—';
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Draw
+──────────────────────────────────────────────────────────────────────────── */
+function drawAll() {
+  if (!img) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  frames.forEach((pts, fi) => {
+    const isActive = fi === currentFrame;
+    const alpha = isActive ? 1.0 : 0.45;
+
+    // Draw polygon if we have 2+ points
+    if (pts.length >= 2) {
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x * zoom, pts[0].y * zoom);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x * zoom, pts[i].y * zoom);
+      if (pts.length === 4) ctx.closePath();
+      ctx.strokeStyle = isActive ? '#6c63ff' : '#00e096';
+      ctx.lineWidth = 2 / zoom * zoom;
+      ctx.globalAlpha = alpha;
+      ctx.stroke();
+      if (pts.length === 4) {
+        ctx.fillStyle = isActive ? '#6c63ff18' : '#00e09612';
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Draw corner dots
+    pts.forEach((p, pi) => {
+      ctx.beginPath();
+      ctx.arc(p.x * zoom, p.y * zoom, 6, 0, Math.PI * 2);
+      ctx.fillStyle = POINT_COLORS[pi];
+      ctx.globalAlpha = alpha;
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Label
+      if (isActive) {
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${Math.round(11 * Math.min(zoom, 1.5))}px Inter, sans-serif`;
+        ctx.fillText(POINT_NAMES[pi].replace('_', '\n'), p.x * zoom + 8, p.y * zoom - 6);
+      }
+    });
+
+    // Frame label
+    const labelPt = pts[0];
+    if (labelPt) {
+      ctx.fillStyle = isActive ? '#6c63ff' : '#00e096';
+      ctx.font = `bold ${Math.round(13 * Math.min(zoom, 1.5))}px Inter, sans-serif`;
+      ctx.fillText(`F${fi + 1}`, labelPt.x * zoom - 18, labelPt.y * zoom - 10);
+    }
+  });
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Generate JSON output
+──────────────────────────────────────────────────────────────────────────── */
+function generateJSON() {
+  const cat = catSelect.value;
+  const idx = idxInput.value.toString();
+  const fn  = fnInput.value || `${cat}-${idx}.jpeg`;
+
+  // Build frames array from calibrated clicks
+  const calibratedFrames = frames
+    .filter(pts => pts.length === 4)
+    .map((pts, i) => ({
+      index: i + 1,
+      corners: {
+        top_left:     [pts[0].x, pts[0].y],
+        top_right:    [pts[1].x, pts[1].y],
+        bottom_right: [pts[2].x, pts[2].y],
+        bottom_left:  [pts[3].x, pts[3].y]
+      }
+    }));
+
+  if (calibratedFrames.length === 0) return;
+
+  // Merge into savedDB
+  if (!savedDB[cat]) savedDB[cat] = {};
+  savedDB[cat][idx] = {
+    filename: fn,
+    calibrated: true,
+    frames: calibratedFrames
+  };
+
+  // Pretty-print
+  outputJson.value = JSON.stringify(savedDB, null, 2);
+  setStatus(`✅ ${cat}/${idx} saved (${calibratedFrames.length} frame${calibratedFrames.length>1?'s':''}).`, 'success');
+}
+
+catSelect.addEventListener('change', generateJSON);
+idxInput.addEventListener('input', generateJSON);
+fnInput.addEventListener('input', generateJSON);
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Export / Copy
+──────────────────────────────────────────────────────────────────────────── */
+exportBtn.addEventListener('click', () => {
+  if (!outputJson.value) { setStatus('Nothing to export yet.', 'warn'); return; }
+  const blob = new Blob([outputJson.value], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'coordinates_patch.json';
+  a.click();
+});
+
+copyBtn.addEventListener('click', () => {
+  if (!outputJson.value) { setStatus('Nothing to copy yet.', 'warn'); return; }
+  navigator.clipboard.writeText(outputJson.value).then(() => setStatus('Copied to clipboard!', 'success'));
+});
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Status helper
+──────────────────────────────────────────────────────────────────────────── */
+function setStatus(msg, type = 'info') {
+  statusBox.style.display = 'block';
+  statusBox.className = `status-bar ${type}`;
+  statusBox.textContent = msg;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Keyboard shortcuts
+──────────────────────────────────────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'z' && (e.metaKey || e.ctrlKey)) {
+    // Undo last click
+    const pts = frames[currentFrame];
+    if (pts.length > 0) {
+      pts.pop();
+      updatePointList();
+      drawAll();
+      setStatus('Last point undone (Ctrl+Z)', 'warn');
+    }
+  }
+  if (e.key === '+' || e.key === '=') { zoom = Math.min(zoom + 0.15, 4); applyZoom(); }
+  if (e.key === '-')                  { zoom = Math.max(zoom - 0.15, 0.1); applyZoom(); }
+});
+
+window.addEventListener('resize', () => { if (img) fitCanvas(); });
+</script>
+</body>
+</html>

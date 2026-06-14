@@ -1,0 +1,789 @@
+{
+  "_schema": "v2",
+  "_note": "Coordinates are in PIXEL space (NOT normalized). All corners in order: top_left, top_right, bottom_right, bottom_left. Use calibration tool to correct any wrong frame.",
+  "single": {
+    "1": {
+      "filename": "single-1.jpeg",
+      "calibrated": true,
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              287,
+              160
+            ],
+            "top_right": [
+              868,
+              197
+            ],
+            "bottom_right": [
+              950,
+              1089
+            ],
+            "bottom_left": [
+              352,
+              1153
+            ]
+          }
+        }
+      ],
+      "_note": "calibrated manually"
+    },
+    "2": {
+      "filename": "single-2.jpeg",
+      "calibrated": true,
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              417,
+              309
+            ],
+            "top_right": [
+              891,
+              306
+            ],
+            "bottom_right": [
+              884,
+              1020
+            ],
+            "bottom_left": [
+              398,
+              995
+            ]
+          }
+        }
+      ],
+      "_note": "calibrated manually"
+    },
+    "3": {
+      "filename": "single-3.jpeg",
+      "calibrated": true,
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              452,
+              353
+            ],
+            "top_right": [
+              1149,
+              353
+            ],
+            "bottom_right": [
+              1161,
+              1378
+            ],
+            "bottom_left": [
+              440,
+              1392
+            ]
+          }
+        }
+      ],
+      "_note": "calibrated manually"
+    },
+    "4": {
+      "filename": "single-4.jpeg",
+      "calibrated": true,
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              303,
+              227
+            ],
+            "top_right": [
+              859,
+              176
+            ],
+            "bottom_right": [
+              847,
+              1091
+            ],
+            "bottom_left": [
+              277,
+              1031
+            ]
+          }
+        }
+      ],
+      "_note": "calibrated manually"
+    },
+    "5": {
+      "filename": "single-5.jpeg",
+      "calibrated": true,
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              316,
+              435
+            ],
+            "top_right": [
+              834,
+              436
+            ],
+            "bottom_right": [
+              839,
+              1179
+            ],
+            "bottom_left": [
+              311,
+              1181
+            ]
+          }
+        }
+      ],
+      "_note": "calibrated manually"
+    },
+    "6": {
+      "filename": "single-6.jpeg",
+      "calibrated": true,
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              337,
+              370
+            ],
+            "top_right": [
+              790,
+              368
+            ],
+            "bottom_right": [
+              790,
+              1053
+            ],
+            "bottom_left": [
+              337,
+              1050
+            ]
+          }
+        }
+      ],
+      "_note": "calibrated manually"
+    },
+    "7": {
+      "filename": "single-7.jpeg",
+      "calibrated": true,
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              371,
+              373
+            ],
+            "top_right": [
+              705,
+              393
+            ],
+            "bottom_right": [
+              750,
+              903
+            ],
+            "bottom_left": [
+              408,
+              941
+            ]
+          }
+        }
+      ],
+      "_note": "calibrated manually"
+    },
+    "8": {
+      "filename": "single-8.jpeg",
+      "calibrated": true,
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              376,
+              223
+            ],
+            "top_right": [
+              883,
+              198
+            ],
+            "bottom_right": [
+              824,
+              1055
+            ],
+            "bottom_left": [
+              342,
+              946
+            ]
+          }
+        }
+      ],
+      "_note": "calibrated manually"
+    },
+    "9": {
+      "filename": "single-9.jpeg",
+      "calibrated": true,
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              385,
+              389
+            ],
+            "top_right": [
+              722,
+              369
+            ],
+            "bottom_right": [
+              688,
+              946
+            ],
+            "bottom_left": [
+              337,
+              914
+            ]
+          }
+        }
+      ],
+      "_note": "calibrated manually"
+    }
+  },
+  "kitchen": {
+    "1": {
+      "filename": "kitchen-1.jpeg",
+      "calibrated": false,
+      "_note": "Placeholder — needs calibration tool",
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              320,
+              120
+            ],
+            "top_right": [
+              680,
+              120
+            ],
+            "bottom_right": [
+              680,
+              780
+            ],
+            "bottom_left": [
+              320,
+              780
+            ]
+          }
+        }
+      ]
+    },
+    "4": {
+      "filename": "kitchen-4.jpeg",
+      "calibrated": false,
+      "_note": "Auto-detected",
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              428,
+              264
+            ],
+            "top_right": [
+              769,
+              227
+            ],
+            "bottom_right": [
+              755,
+              703
+            ],
+            "bottom_left": [
+              403,
+              679
+            ]
+          }
+        }
+      ]
+    },
+    "5": {
+      "filename": "kitchen-5.jpeg",
+      "calibrated": false,
+      "_note": "Auto-detected",
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              306,
+              316
+            ],
+            "top_right": [
+              700,
+              320
+            ],
+            "bottom_right": [
+              692,
+              835
+            ],
+            "bottom_left": [
+              295,
+              820
+            ]
+          }
+        }
+      ]
+    },
+    "8": {
+      "filename": "kitchen-8.jpeg",
+      "calibrated": false,
+      "_note": "Auto-detected — very small frame region, likely wrong",
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              140,
+              65
+            ],
+            "top_right": [
+              233,
+              56
+            ],
+            "bottom_right": [
+              232,
+              239
+            ],
+            "bottom_left": [
+              141,
+              240
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "triple": {
+    "1": {
+      "filename": "triple-1.jpeg",
+      "calibrated": false,
+      "_note": "Auto-detected — 3 frames side by side",
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              120,
+              160
+            ],
+            "top_right": [
+              350,
+              160
+            ],
+            "bottom_right": [
+              350,
+              740
+            ],
+            "bottom_left": [
+              120,
+              740
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "corners": {
+            "top_left": [
+              385,
+              160
+            ],
+            "top_right": [
+              615,
+              160
+            ],
+            "bottom_right": [
+              615,
+              740
+            ],
+            "bottom_left": [
+              385,
+              740
+            ]
+          }
+        },
+        {
+          "index": 3,
+          "corners": {
+            "top_left": [
+              650,
+              160
+            ],
+            "top_right": [
+              880,
+              160
+            ],
+            "bottom_right": [
+              880,
+              740
+            ],
+            "bottom_left": [
+              650,
+              740
+            ]
+          }
+        }
+      ]
+    },
+    "2": {
+      "filename": "triple-2.jpeg",
+      "calibrated": false,
+      "_note": "Auto-detected — non-grid layout",
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              8,
+              689
+            ],
+            "top_right": [
+              258,
+              680
+            ],
+            "bottom_right": [
+              260,
+              867
+            ],
+            "bottom_left": [
+              12,
+              884
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "corners": {
+            "top_left": [
+              82,
+              196
+            ],
+            "top_right": [
+              360,
+              205
+            ],
+            "bottom_right": [
+              362,
+              520
+            ],
+            "bottom_left": [
+              89,
+              524
+            ]
+          }
+        },
+        {
+          "index": 3,
+          "corners": {
+            "top_left": [
+              677,
+              215
+            ],
+            "top_right": [
+              910,
+              223
+            ],
+            "bottom_right": [
+              904,
+              511
+            ],
+            "bottom_left": [
+              672,
+              514
+            ]
+          }
+        }
+      ]
+    },
+    "8": {
+      "filename": "triple-8.jpeg",
+      "calibrated": false,
+      "_note": "Auto-detected — verify all 3 frames",
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              642,
+              287
+            ],
+            "top_right": [
+              849,
+              256
+            ],
+            "bottom_right": [
+              858,
+              664
+            ],
+            "bottom_left": [
+              655,
+              668
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "corners": {
+            "top_left": [
+              617,
+              244
+            ],
+            "top_right": [
+              888,
+              215
+            ],
+            "bottom_right": [
+              887,
+              712
+            ],
+            "bottom_left": [
+              617,
+              695
+            ]
+          }
+        },
+        {
+          "index": 3,
+          "corners": {
+            "top_left": [
+              625,
+              254
+            ],
+            "top_right": [
+              882,
+              223
+            ],
+            "bottom_right": [
+              882,
+              703
+            ],
+            "bottom_left": [
+              626,
+              690
+            ]
+          }
+        }
+      ]
+    },
+    "9": {
+      "filename": "triple-9.jpeg",
+      "calibrated": false,
+      "_note": "Auto-detected — verify all 3 frames",
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              376,
+              301
+            ],
+            "top_right": [
+              651,
+              311
+            ],
+            "bottom_right": [
+              658,
+              702
+            ],
+            "bottom_left": [
+              382,
+              714
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "corners": {
+            "top_left": [
+              382,
+              308
+            ],
+            "top_right": [
+              647,
+              316
+            ],
+            "bottom_right": [
+              653,
+              699
+            ],
+            "bottom_left": [
+              385,
+              709
+            ]
+          }
+        },
+        {
+          "index": 3,
+          "corners": {
+            "top_left": [
+              376,
+              301
+            ],
+            "top_right": [
+              651,
+              311
+            ],
+            "bottom_right": [
+              658,
+              702
+            ],
+            "bottom_left": [
+              382,
+              714
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "six": {
+    "1": {
+      "filename": "six-1.jpeg",
+      "calibrated": false,
+      "_note": "Auto-detected — 6-frame grid",
+      "frames": [
+        {
+          "index": 1,
+          "corners": {
+            "top_left": [
+              120,
+              120
+            ],
+            "top_right": [
+              340,
+              120
+            ],
+            "bottom_right": [
+              340,
+              460
+            ],
+            "bottom_left": [
+              120,
+              460
+            ]
+          }
+        },
+        {
+          "index": 2,
+          "corners": {
+            "top_left": [
+              380,
+              120
+            ],
+            "top_right": [
+              600,
+              120
+            ],
+            "bottom_right": [
+              600,
+              460
+            ],
+            "bottom_left": [
+              380,
+              460
+            ]
+          }
+        },
+        {
+          "index": 3,
+          "corners": {
+            "top_left": [
+              640,
+              120
+            ],
+            "top_right": [
+              860,
+              120
+            ],
+            "bottom_right": [
+              860,
+              460
+            ],
+            "bottom_left": [
+              640,
+              460
+            ]
+          }
+        },
+        {
+          "index": 4,
+          "corners": {
+            "top_left": [
+              120,
+              520
+            ],
+            "top_right": [
+              340,
+              520
+            ],
+            "bottom_right": [
+              340,
+              860
+            ],
+            "bottom_left": [
+              120,
+              860
+            ]
+          }
+        },
+        {
+          "index": 5,
+          "corners": {
+            "top_left": [
+              380,
+              520
+            ],
+            "top_right": [
+              600,
+              520
+            ],
+            "bottom_right": [
+              600,
+              860
+            ],
+            "bottom_left": [
+              380,
+              860
+            ]
+          }
+        },
+        {
+          "index": 6,
+          "corners": {
+            "top_left": [
+              640,
+              520
+            ],
+            "top_right": [
+              860,
+              520
+            ],
+            "bottom_right": [
+              860,
+              860
+            ],
+            "bottom_left": [
+              640,
+              860
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
